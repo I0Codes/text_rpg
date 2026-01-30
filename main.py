@@ -6,7 +6,7 @@ from world import Forest
 def main():
     """Точка входу в гру"""
     # Створюємо персонажа
-    player = Character(name="Герой", hp=100)
+    player = Character(name="Hero", hp=100)
     
     # Створюємо початкову локацію
     forest = Forest()
