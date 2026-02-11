@@ -1,5 +1,5 @@
 class Item:
-    """Базовий клас предмета (plain class)
+    """Базовий клас предмета
 
     Поля:
         item_type (str): тип предмета (наприклад, "weapon", "consumable", "armor")
