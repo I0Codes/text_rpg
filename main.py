@@ -6,7 +6,12 @@ def main():
     """Точка входу в гру"""
     # Створюємо персонажа
     player = Character(name="Hero", hp=100)
-    
+    # демонстрація інвентарю
+    from items import Item
+    potion = Item(item_type="consumable", name="Зілля здоров'я", description="Відновлює 50 HP", weight=0.5, value=0, stackable=True, quantity=1)
+    player.add_item(potion)
+    player.inventory.show_inventory()
+
     # Створюємо початкову локацію
     forest = Forest()
     
