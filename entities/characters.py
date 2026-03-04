@@ -12,6 +12,7 @@ class Character:
         """
         self.name = name
         self.hp = hp
+        self.max_hp = hp
         self.level = level
         self.attributes = Attributes(
             strength=5,

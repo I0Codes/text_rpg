@@ -7,6 +7,20 @@ class Attributes:
 		self.agility = int(agility)
 		self.luck = int(luck)
 
+	def update(self, strength=None, intelligence=None, agility=None, luck=None):
+		"""Оновити атрибути на основі переданих параметрів.
+		
+		Приклад: attributes.update(strength=10, agility=5)
+		"""
+		if strength is not None:
+			self.strength = int(strength)
+		if intelligence is not None:
+			self.intelligence = int(intelligence)
+		if agility is not None:
+			self.agility = int(agility)
+		if luck is not None:
+			self.luck = int(luck)
+
 	def get_physical_damage_bonus(self) -> float:
 		"""Бонус до фізичного ураження: +1.5 за кожен пункт сили."""
 		return 1.5 * self.strength
