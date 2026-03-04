@@ -3,7 +3,7 @@ from entities.attributes import Attributes
 class Character:
     """Базовий клас персонажа"""
     
-    def __init__(self, name, hp, level=1):
+    def __init__(self, name, hp, max_hp, stamina, max_stamina, level=1):
         """Ініціалізація персонажа
         
         Args:
@@ -13,6 +13,9 @@ class Character:
         self.name = name
         self.hp = hp
         self.level = level
+        self.max_hp = max_hp
+        self.stamina = stamina
+        self.max_stamina = max_stamina
         self.attributes = Attributes(
             strength=5,
             intelligence=5,
@@ -60,6 +63,39 @@ class Character:
         """Calculate physical damage based on attributes"""
         base_damage = 5 + self.attributes.calculate_physical_damage_bonus()
         return base_damage
+    
+    def heal(self, amount):
+        self.hp = min(self.hp + amount, self.max_hp)
+        print(f"блбплпбплпбплпбп {amount}. вбвбьавбьавбьавдладлав: {self.hp}")
+
+    def restore_stamina(self, amount):
+        self.stamina = min(self.stamina + amount, self.max_stamina)
+        print(f"fmnvnvdnvm {amount}.bubochka: {self.stamina}")
+    def use_stamina(self, cost):
+        if self.stamina >= cost:
+            self.stamina -= cost
+            return True
+        print("biba")
+        return False
+class Warrior(Character):
+    def __init__(self, name):
+        super()._init_(name, hp=120, stamina = 100, agility = 5, strength = 10, intelligence = 3, luck = 5)
+class Mage(Character):
+    def __init__(self, name):
+        super().__init__(name, hp=80, stamina=60, str=3, int=10, dex=4, luck=6)
+        self.max_mana = 120
+        self.mana = 120
+
+    def restore_mana(self, amount):
+        self.mana = min(self.max_mana, self.mana + amount)
+        print(f"{self.name} відновив {amount} мани. Мана: {self.mana}")
+
+class Scout(Character):
+    def __init__(self, name):
+        super().__init__(name, hp=90, stamina=120, str=5, int=4, dex=10, luck=8)
+        
+        
+
 
 # TODO: додати класи Warrior, Mage, Scout через наслідування від Character
 # Приклад:
