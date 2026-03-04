@@ -20,13 +20,6 @@ class Enemy(Character):
         self.hp = self.max_hp
         self.base_attack = int(self.base_attack * scaling_factor)
         self.defense = int(self.defense * scaling_factor)
-        # Scale attributes for damage calculations
-        self.attributes.strength = int(self.attributes.strength * scaling_factor)
-        self.attributes.intelligence = int(self.attributes.intelligence * scaling_factor)
-        self.attributes.agility = int(self.attributes.agility * scaling_factor)
-        self.attributes.luck = int(self.attributes.luck * scaling_factor)
-        self.xp_reward = int(self.xp_reward * scaling_factor)
-        self.gold_reward = int(self.gold_reward * scaling_factor)
 
     def attack(self):
         """Return attack damage with variance"""
@@ -48,39 +41,45 @@ class Enemy(Character):
 
 class Goblin(Enemy):
     def __init__(self, level=1):
-        super().__init__('Goblin', 30, 8, 2, level, xp_reward=25, gold_reward=10)
-        self.attributes = Attributes(strength=3, intelligence=2, agility=4, luck=3)
-        self._scale_to_level()
+        super().__init__("Goblin", hp=30, attack=8, defense=2, level=level, enemy_type="goblin", reward_gold=3 * level)
+        self.attributes.update({"agility": 8 * level, "strength": 4 * level})
+        # super().__init__('Goblin', 30, 8, 2, level, xp_reward=25, gold_reward=10)
+        # self.attributes = Attributes(strength=3, intelligence=2, agility=4, luck=3)
+        # self._scale_to_level()
 
 
 class Wolf(Enemy):
     def __init__(self, level=1):
         # Швидкий ворог з високою спритністю
-        super().__init__('Wolf', 25, 10, 3, level, xp_reward=35, gold_reward=15)
-        self.attributes = Attributes(strength=4, intelligence=1, agility=6, luck=2)
-        self._scale_to_level()
+        super().__init__("Wolf", hp=25, attack=10, defense=3, level=level, enemy_type="wolf", reward_gold=4 * level)
+        self.attributes.update({"agility": 12 * level, "strength": 6 * level})
+        # super().__init__('Wolf', 25, 10, 3, level, xp_reward=35, gold_reward=15)
+        # self.attributes = Attributes(strength=4, intelligence=1, agility=6, luck=2)
+        # self._scale_to_level()
 
 
 class Bandit(Enemy):
     def __init__(self, level=1):
-        # збалансований ворог
-        super().__init__('Bandit', 40, 12, 4, level, xp_reward=50, gold_reward=30)
-        self.attributes = Attributes(strength=4, intelligence=3, agility=5, luck=4)
-        self._scale_to_level()
+        # Збалансований ворог
+        super().__init__("Bandit", hp=40, attack=12, defense=4, level=level, enemy_type="bandit", reward_gold=6 * level)
+        self.attributes.update({"agility": 7 * level, "strength": 9 * level})
+        # super().__init__('Bandit', 40, 12, 4, level, xp_reward=50, gold_reward=30)
+        # self.attributes = Attributes(strength=4, intelligence=3, agility=5, luck=4)
+        # self._scale_to_level()
 
 
 # Збережено старі типи як більш складні вороги (вони автоматично працюватимуть з новим Enemy)
 
 class Orc(Enemy):
     def __init__(self, level=1):
-        super().__init__('Orc', 50, 12, 5, level, xp_reward=60, gold_reward=40)
+        super().__init__('Orc', hp=50, attack=12, defense=4, level=level)
         self.attributes = Attributes(strength=6, intelligence=2, agility=3, luck=2)
         self._scale_to_level()
 
 
 class Dragon(Enemy):
     def __init__(self, level=1):
-        super().__init__('Dragon', 150, 25, 8, level, xp_reward=150, gold_reward=100)
+        super().__init__('Dragon', hp=150, attack=25, defense=10, level=level)
         self.attributes = Attributes(strength=10, intelligence=8, agility=4, luck=3)
         self._scale_to_level()
 
@@ -98,16 +97,45 @@ class Dragon(Enemy):
             return max(2, base_damage + variance)
         return super().attack()
 
+    def is_alive(self):
+        return self.hp > 0
+
+    def take_damage(self, damage):
+        real_damage = max(0, damage - self.defense)
+        self.hp -= real_damage
+        return real_damage
+
+    def deal_damage(self):
+        return random.randint(max(0, self.attack - 2), self.attack + 2)
+
+    def __str__(self):
+        return f"{self.name} (HP: {self.hp}/{self.max_hp})"
+
+    # Нагорода за перемогу
+    def get_loot(self):
+        return {"exp": self.reward_exp, "gold": self.reward_gold}
+
+    # Простий AI: поки що завжди атакує
+    def select_action(self, battlefield=None):
+        return "attack"
+
 
 class Troll(Enemy):
     def __init__(self, level=1):
-        super().__init__('Troll', 80, 15, 6, level, xp_reward=80, gold_reward=50)
+        super().__init__('Troll', hp=80, attack=15, defense=6, level=level)
         self.attributes = Attributes(strength=7, intelligence=1, agility=2, luck=1)
         self._scale_to_level()
+
+    def take_damage(self, damage):
+        real_damage = super().take_damage(damage)
+        # Регенерація: зцілює 10% від максимального здоров'я за хід, якщо живий
+        if self.is_alive():
+            self.hp = min(self.hp + int(0.1 * 80 * self.level), 80 * self.level)
+        return real_damage
     
-    def attack(self):
-        """Регенерація: зцілює 10% від максимального здоров'я за хід, якщо живий"""
-        if random.random() < 0.1:
-            heal_amount = int(self.max_hp * 0.1)
-            self.hp = min(self.max_hp, self.hp + heal_amount)
-        return super().attack()
+    # def attack(self):
+        # """Регенерація: зцілює 10% від максимального здоров'я за хід, якщо живий"""
+        # if random.random() < 0.1:
+        #     heal_amount = int(self.max_hp * 0.1)
+        #     self.hp = min(self.max_hp, self.hp + heal_amount)
+        # return super().attack()
