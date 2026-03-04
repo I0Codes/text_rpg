@@ -19,8 +19,15 @@ class Game:
         """Виводить поточний статус гравця та локації"""
         UI.print_separator()
         status = f"Персонаж: {self.player.name}\n"
-        status += f"HP: {self.player.hp}\n"
+        status += f"Рівень: {self.player.level}\n"
+        status += f"HP: {self.player.hp}/{self.player.max_hp}\n"
+        
+        # Інформація про досвід
+        exp_summary = self.player.experience_manager.get_summary()
+        progress = exp_summary['progress_percentage']
+        status += f"Досвід: {exp_summary['total_experience']}/{exp_summary['experience_to_next_level']} ({progress:.1f}%)\n"
         status += f"Локація: {self.current_location.name}"
+        
         UI.print_status(status)
         UI.print_separator()
     
