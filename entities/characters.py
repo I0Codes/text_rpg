@@ -1,4 +1,5 @@
 from entities.attributes import Attributes
+from entities.experience import ExperienceManager
 
 class Character:
     """Базовий клас персонажа"""
@@ -11,6 +12,7 @@ class Character:
             hp: Здоров'я персонажа
         """
         self.name = name
+        self.max_hp = hp
         self.hp = hp
         self.level = level
         self.attributes = Attributes(
@@ -19,7 +21,7 @@ class Character:
             agility=5,
             luck=5
         )
-        self.experience = 0
+        self.experience_manager = ExperienceManager(self)
         self.gold = 0
     
     def is_alive(self):
@@ -30,23 +32,21 @@ class Character:
         """
         return self.hp > 0
     
-    def gain_experience(self, amount):
-        self.experience += amount
-        # Level up every 100 XP
-        new_level = self.experience // 100 + 1
-        if new_level > self.level:
-            self.level_up(new_level - self.level)
-
-    def level_up(self, levels):
-        old_level = self.level
-        self.level += levels
-        # Increase stats on level up
-        self.max_hp += 10 * levels
+    def gain_experience(self, amount, source="unknown"):
+        """Отримати досвід через ExperienceManager"""
+        self.experience_manager.gain_experience(amount, source=source)
+    
+    def level_up_stats(self):
+        """Покращити характеристики при підвищенні рівня"""
+        # Збільшення максимального здоров'я
+        self.max_hp += 10
         self.hp = self.max_hp
-        self.attributes.strength += 1 * levels
-        self.attributes.intelligence += 1 * levels
-        self.attributes.agility += 1 * levels
-        self.attributes.luck += 1 * levels
+        
+        # Збільшення характеристик
+        self.attributes.strength += 1
+        self.attributes.intelligence += 1
+        self.attributes.agility += 1
+        self.attributes.luck += 1
 
     def gain_gold(self, amount):
         self.gold += amount
