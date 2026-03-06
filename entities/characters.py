@@ -1,19 +1,23 @@
+from items.inventory import Inventory
 from entities.attributes import Attributes
 from entities.experience import ExperienceManager
 
 class Character:
     """Базовий клас персонажа"""
-    
-    def __init__(self, name, hp, max_hp, stamina, max_stamina, level=1):
+
+    def __init__(self, name, hp, max_hp, stamina, max_stamina, level=1, inventory_capacity: int = 20):
         """Ініціалізація персонажа
         
         Args:
             name: Ім'я персонажа
             hp: Здоров'я персонажа
+            inventory_capacity: максимальна кількість слотів у інвентарі
         """
         self.name = name
         self.max_hp = hp
         self.hp = hp
+        # інтегруємо інвентар
+        self.inventory = Inventory(max_capacity=inventory_capacity)
         self.max_hp = hp
         self.level = level
         self.max_hp = max_hp
@@ -97,6 +101,19 @@ class Scout(Character):
         
         
 
+
+    # додаткові методи-заглушки для зручності
+    def add_item(self, item):
+        """Обгортає Inventory.add_item"""
+        return self.inventory.add_item(item)
+
+    def remove_item(self, item):
+        """Обгортає Inventory.remove_item"""
+        return self.inventory.remove_item(item)
+
+    def use_item(self, item):
+        """Спробувати використати предмет із інвентаря"""
+        return self.inventory.use_item(item, self)
 
 # TODO: додати класи Warrior, Mage, Scout через наслідування від Character
 # Приклад:
