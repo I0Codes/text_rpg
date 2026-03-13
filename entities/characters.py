@@ -82,6 +82,19 @@ class Character:
             return True
         print("biba")
         return False
+
+        # додаткові методи-заглушки для зручності
+    def add_item(self, item):
+        """Обгортає Inventory.add_item"""
+        return self.inventory.add_item(item)
+
+    def remove_item(self, item):
+        """Обгортає Inventory.remove_item"""
+        return self.inventory.remove_item(item)
+
+    def use_item(self, item):
+        """Спробувати використати предмет із інвентаря"""
+        return self.inventory.use_item(item, self)
 class Warrior(Character):
     def __init__(self, name):
         super()._init_(name, hp=120, stamina = 100, agility = 5, strength = 10, intelligence = 3, luck = 5)
@@ -98,22 +111,6 @@ class Mage(Character):
 class Scout(Character):
     def __init__(self, name):
         super().__init__(name, hp=90, stamina=120, str=5, int=4, dex=10, luck=8)
-        
-        
-
-
-    # додаткові методи-заглушки для зручності
-    def add_item(self, item):
-        """Обгортає Inventory.add_item"""
-        return self.inventory.add_item(item)
-
-    def remove_item(self, item):
-        """Обгортає Inventory.remove_item"""
-        return self.inventory.remove_item(item)
-
-    def use_item(self, item):
-        """Спробувати використати предмет із інвентаря"""
-        return self.inventory.use_item(item, self)
 
 # TODO: додати класи Warrior, Mage, Scout через наслідування від Character
 # Приклад:
