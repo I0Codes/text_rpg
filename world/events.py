@@ -1,4 +1,7 @@
 import random
+import sys
+sys.path.append('d:\\9-B\\text_rpg')
+from dice_system import DiceSystem
 
 class Event:
     def __init__(self, name, description, event_type, chance):
@@ -99,5 +102,157 @@ class AmbushEvent(Event):
         else:
             result = f"Ви потрапили в бій з {enemies_count} ворогами! (Шанс втечі був {escape_chance}%)"
         
+        print(result)
+        return result
+
+
+class ChoiceEvent(Event):
+    """Подія з варіантами вибору"""
+    def __init__(self, name, description, chance):
+        super().__init__(name, description, "CHOICE", chance)
+        self.choices = []  # Список варіантів
+    
+    def add_choice(self, text, action_function):
+        """Додати варіант вибору"""
+        self.choices.append((text, action_function))
+    
+    def show_choices(self):
+        """Показати всі варіанти гравцю"""
+        print("\n=== ВАРІАНТИ ВИБОРУ ===")
+        for i, (text, _) in enumerate(self.choices, 1):
+            print(f"{i}. {text}")
+    
+    def resolve(self, player, choice_index):
+        """Виконати обраний варіант"""
+        if 1 <= choice_index <= len(self.choices):
+            _, action = self.choices[choice_index - 1]
+            return action(player)
+        else:
+            return "Невірний вибір."
+
+
+class SwampStreamEvent(ChoiceEvent):
+    def __init__(self):
+        super().__init__(
+            name="Болотний потічок",
+            description="Перед вами каламутний потічок. Як перейти?",
+            chance=0.30
+        )
+        self.add_choice("Перестрибнути (перевірка Ловкості)", self.jump_over)
+        self.add_choice("Обійти довкола", self.go_around)
+        self.add_choice("Обережно перейти", self.cross_carefully)
+    
+    def jump_over(self, player):
+        if DiceSystem.attribute_check(player, "dexterity", 4):
+            result = "Ви успішно перестрибнули! 0 шкоди."
+        else:
+            player.hp -= 15
+            result = "Ви послизнулися! -15 HP."
+        print(result)
+        return result
+    
+    def go_around(self, player):
+        player.stamina -= 20
+        result = "Ви обійшли довкола. -20 stamina."
+        print(result)
+        return result
+    
+    def cross_carefully(self, player):
+        player.hp -= 8
+        result = "Ви обережно перейшли. -8 HP."
+        print(result)
+        return result
+
+
+class CliffClimbEvent(ChoiceEvent):
+    def __init__(self):
+        super().__init__(
+            name="Крутий схил",
+            description="Попереду крутий схил. Як подолати?",
+            chance=0.25
+        )
+        self.add_choice("Залізти (перевірка Сили та Ловкості)", self.climb)
+        self.add_choice("Знайти обхідний шлях (перевірка Інтелекту)", self.find_path)
+        self.add_choice("Пропустити", self.skip)
+    
+    def climb(self, player):
+        str_success = DiceSystem.attribute_check(player, "strength", 4)
+        dex_success = DiceSystem.attribute_check(player, "dexterity", 4)
+        if str_success and dex_success:
+            result = "Ви успішно залізли і знайшли скарб!"
+        elif str_success or dex_success:
+            player.hp -= 10
+            result = "Ви залізли, але отримали поранення. -10 HP."
+        else:
+            player.hp -= 20
+            result = "Ви впали! -20 HP."
+        print(result)
+        return result
+    
+    def find_path(self, player):
+        if DiceSystem.attribute_check(player, "intelligence", 4):
+            result = "Ви знайшли безпечний обхідний шлях."
+        else:
+            result = "Ви не змогли знайти шлях."
+        print(result)
+        return result
+    
+    def skip(self, player):
+        result = "Ви вирішили пропустити схил. Нічого не сталося."
+        print(result)
+        return result
+
+
+class MysteriousChestEvent(ChoiceEvent):
+    def __init__(self):
+        super().__init__(
+            name="Підозріла скриня",
+            description="Ви знайшли підозрілу скриню з пасткою. Що робити?",
+            chance=0.20
+        )
+        self.add_choice("Відкрити обережно (Ловкість + Удача)", self.open_carefully)
+        self.add_choice("Відкрити силою (перевірка Сили)", self.open_force)
+        self.add_choice("Спочатку оглянути (перевірка Інтелекту)", self.inspect)
+        self.add_choice("Залишити скриню", self.leave)
+    
+    def open_carefully(self, player):
+        dex_success = DiceSystem.attribute_check(player, "dexterity", 4)
+        luck_success = DiceSystem.attribute_check(player, "luck", 4)
+        if dex_success and luck_success:
+            gold = random.randint(40, 70)
+            player.gold += gold
+            result = f"Ви уникнули пастки і знайшли {gold} золота!"
+        elif dex_success:
+            player.hp -= 10
+            result = "Ви частково уникнули пастки, але отримали шкоду. -10 HP."
+        else:
+            player.hp -= 25
+            result = "Пастка спрацювала! -25 HP."
+        print(result)
+        return result
+    
+    def open_force(self, player):
+        if DiceSystem.attribute_check(player, "strength", 4):
+            gold = random.randint(15, 30)
+            player.gold += gold
+            result = f"Ви зламали замок і знайшли {gold} золота!"
+        else:
+            player.stamina -= 15
+            result = "Ви не змогли відкрити. -15 stamina."
+        print(result)
+        return result
+    
+    def inspect(self, player):
+        if DiceSystem.attribute_check(player, "intelligence", 4):
+            gold = random.randint(40, 70)
+            player.gold += gold
+            result = f"Ви вимкнули пастку і знайшли {gold} золота!"
+        else:
+            result = "Ви нічого не помітили."
+        print(result)
+        return result
+    
+    def leave(self, player):
+        result = "Ви залишили скриню. Нічого не сталося."
         print(result)
         return result
