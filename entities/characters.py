@@ -81,6 +81,30 @@ class Character:
     def restore_mana(self, amount):
         self.mana = min(self.max_mana, self.mana + amount)
         print(f"{self.name} відновив {amount} мани. Мана: {self.mana}")
+        
+    def restore_stamina(self, amount):
+        self.stamina = min(self.stamina + amount, self.max_stamina)
+        print(f"fmnvnvdnvm {amount}.bubochka: {self.stamina}")
+        
+    def use_stamina(self, cost):
+        if self.stamina >= cost:
+            self.stamina -= cost
+            return True
+        print("biba")
+        return False
+
+        # додаткові методи-заглушки для зручності
+    def add_item(self, item):
+        """Обгортає Inventory.add_item"""
+        return self.inventory.add_item(item)
+
+    def remove_item(self, item):
+        """Обгортає Inventory.remove_item"""
+        return self.inventory.remove_item(item)
+
+    def use_item(self, item):
+        """Спробувати використати предмет із інвентаря"""
+        return self.inventory.use_item(item, self)
 class Warrior(Character):
     def __init__(self, name):
         super().__init__(name, hp=BASE_HP + 20, max_hp=BASE_HP + 20, stamina=BASE_STAMINA, max_stamina=BASE_STAMINA)
