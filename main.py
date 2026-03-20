@@ -1,5 +1,7 @@
+import random
 from core import Game
 from world import Forest
+from world.events import get_random_event
 from ui.menus import MainMenu, CharacterCreationMenu
 
 
