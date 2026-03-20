@@ -1,6 +1,8 @@
+import random
 from core import Game
 from entities import Character, Enemy
 from world import Forest
+from world.events import get_random_event
 
 def main():
     """Точка входу в гру"""
