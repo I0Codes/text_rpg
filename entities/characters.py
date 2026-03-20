@@ -1,6 +1,7 @@
 from items.inventory import Inventory
 from entities.attributes import Attributes
 from entities.experience import ExperienceManager
+from config.settings import BASE_HP, BASE_STAMINA, BASE_MANA
 
 class Character:
     """Базовий клас персонажа"""
@@ -14,15 +15,15 @@ class Character:
             inventory_capacity: максимальна кількість слотів у інвентарі
         """
         self.name = name
-        self.max_hp = hp
+        self.max_hp = max_hp
         self.hp = hp
         # інтегруємо інвентар
         self.inventory = Inventory(max_capacity=inventory_capacity)
-        self.max_hp = hp
         self.level = level
-        self.max_hp = max_hp
         self.stamina = stamina
         self.max_stamina = max_stamina
+        self.max_mana = BASE_MANA
+        self.mana = BASE_MANA
         self.attributes = Attributes(
             strength=5,
             intelligence=5,
@@ -47,8 +48,12 @@ class Character:
     def level_up_stats(self):
         """Покращити характеристики при підвищенні рівня"""
         # Збільшення максимального здоров'я
-        self.max_hp += 10
+        self.max_hp += 10 + self.attributes.get_hp_bonus()
         self.hp = self.max_hp
+        
+        # Збільшення мани
+        self.max_mana += self.attributes.get_mana_bonus()
+        self.mana = self.max_mana
         
         # Збільшення характеристик
         self.attributes.strength += 1
@@ -78,9 +83,14 @@ class Character:
         self.hp = min(self.hp + amount, self.max_hp)
         print(f"блбплпбплпбплпбп {amount}. вбвбьавбьавбьавдладлав: {self.hp}")
 
+    def restore_mana(self, amount):
+        self.mana = min(self.max_mana, self.mana + amount)
+        print(f"{self.name} відновив {amount} мани. Мана: {self.mana}")
+        
     def restore_stamina(self, amount):
         self.stamina = min(self.stamina + amount, self.max_stamina)
         print(f"fmnvnvdnvm {amount}.bubochka: {self.stamina}")
+        
     def use_stamina(self, cost):
         if self.stamina >= cost:
             self.stamina -= cost
@@ -100,23 +110,29 @@ class Character:
     def use_item(self, item):
         """Спробувати використати предмет із інвентаря"""
         return self.inventory.use_item(item, self)
+      
 class Warrior(Character):
     def __init__(self, name):
-        super().__init__(name, hp=120, max_hp=120, stamina=100, max_stamina=100)
+        super().__init__(name, hp=BASE_HP + 20, max_hp=BASE_HP + 20, stamina=BASE_STAMINA, max_stamina=BASE_STAMINA)
         self.attributes.update(strength=10, intelligence=3, agility=5, luck=5)
+        
 class Mage(Character):
     def __init__(self, name):
-        super().__init__(name, hp=80, stamina=60, str=3, int=10, dex=4, luck=6)
-        self.max_mana = 120
-        self.mana = 120
-
-    def restore_mana(self, amount):
-        self.mana = min(self.max_mana, self.mana + amount)
-        print(f"{self.name} відновив {amount} мани. Мана: {self.mana}")
+        super().__init__(name, hp=BASE_HP - 20, max_hp=BASE_HP - 20, stamina=BASE_STAMINA - 40, max_stamina=BASE_STAMINA - 40)
+        self.max_mana = BASE_MANA + 70
+        self.mana = BASE_MANA + 70
+        self.attributes.strength = 3
+        self.attributes.intelligence = 10
+        self.attributes.agility = 4
+        self.attributes.luck = 6
 
 class Scout(Character):
     def __init__(self, name):
-        super().__init__(name, hp=90, stamina=120, str=5, int=4, dex=10, luck=8)
+        super().__init__(name, hp=BASE_HP - 10, max_hp=BASE_HP - 10, stamina=BASE_STAMINA + 20, max_stamina=BASE_STAMINA + 20)
+        self.attributes.strength = 5
+        self.attributes.intelligence = 4
+        self.attributes.agility = 10
+        self.attributes.luck = 8
 
 # TODO: додати класи Warrior, Mage, Scout через наслідування від Character
 # Приклад:
