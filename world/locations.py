@@ -31,6 +31,7 @@ class Location:
         """Дослідження локації - 60% шанс зустріти ворога"""
         if random.random() < 0.6:
             enemy = self._get_random_enemy(hero.level)
+            print(f"\n⚔️ Ви зустріли {enemy.name} (рів. {enemy.level})!")
             return enemy
         else:
             print(f"\nВи дослідили {self.name}... але нікого не зустріли.")

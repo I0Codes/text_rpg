@@ -71,7 +71,12 @@ class Character:
 
     def calculate_physical_damage(self):
         """Calculate physical damage based on attributes"""
-        base_damage = 5 + self.attributes.calculate_physical_damage_bonus()
+        base_damage = 5 + self.attributes.get_physical_damage_bonus()
+        return base_damage
+
+    def calculate_magical_damage(self):
+        """Calculate magical damage based on attributes"""
+        base_damage = 5 + self.attributes.get_magic_damage_bonus()
         return base_damage
     
     def heal(self, amount):
@@ -105,14 +110,12 @@ class Character:
     def use_item(self, item):
         """Спробувати використати предмет із інвентаря"""
         return self.inventory.use_item(item, self)
+      
 class Warrior(Character):
     def __init__(self, name):
         super().__init__(name, hp=BASE_HP + 20, max_hp=BASE_HP + 20, stamina=BASE_STAMINA, max_stamina=BASE_STAMINA)
-        self.attributes.strength = 10
-        self.attributes.intelligence = 3
-        self.attributes.agility = 5
-        self.attributes.luck = 5
-
+        self.attributes.update(strength=10, intelligence=3, agility=5, luck=5)
+        
 class Mage(Character):
     def __init__(self, name):
         super().__init__(name, hp=BASE_HP - 20, max_hp=BASE_HP - 20, stamina=BASE_STAMINA - 40, max_stamina=BASE_STAMINA - 40)
@@ -130,22 +133,6 @@ class Scout(Character):
         self.attributes.intelligence = 4
         self.attributes.agility = 10
         self.attributes.luck = 8
-        
-        
-
-
-    # додаткові методи-заглушки для зручності
-    def add_item(self, item):
-        """Обгортає Inventory.add_item"""
-        return self.inventory.add_item(item)
-
-    def remove_item(self, item):
-        """Обгортає Inventory.remove_item"""
-        return self.inventory.remove_item(item)
-
-    def use_item(self, item):
-        """Спробувати використати предмет із інвентаря"""
-        return self.inventory.use_item(item, self)
 
 # TODO: додати класи Warrior, Mage, Scout через наслідування від Character
 # Приклад:
