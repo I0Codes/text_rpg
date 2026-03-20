@@ -45,7 +45,7 @@ def test_remove_item():
 
 def test_use_item_consumable():
     inv = Inventory()
-    player = Character("Test", hp=10)
+    player = Character("Test", hp=10, max_hp=10, stamina=5, max_stamina=5)
     class Heal(Item):
         def use(self, user):
             user.hp += 5

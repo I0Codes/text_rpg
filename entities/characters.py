@@ -66,7 +66,12 @@ class Character:
 
     def calculate_physical_damage(self):
         """Calculate physical damage based on attributes"""
-        base_damage = 5 + self.attributes.calculate_physical_damage_bonus()
+        base_damage = 5 + self.attributes.get_physical_damage_bonus()
+        return base_damage
+
+    def calculate_magical_damage(self):
+        """Calculate magical damage based on attributes"""
+        base_damage = 5 + self.attributes.get_magic_damage_bonus()
         return base_damage
     
     def heal(self, amount):
@@ -97,7 +102,8 @@ class Character:
         return self.inventory.use_item(item, self)
 class Warrior(Character):
     def __init__(self, name):
-        super()._init_(name, hp=120, stamina = 100, agility = 5, strength = 10, intelligence = 3, luck = 5)
+        super().__init__(name, hp=120, max_hp=120, stamina=100, max_stamina=100)
+        self.attributes.update(strength=10, intelligence=3, agility=5, luck=5)
 class Mage(Character):
     def __init__(self, name):
         super().__init__(name, hp=80, stamina=60, str=3, int=10, dex=4, luck=6)

@@ -1,4 +1,7 @@
+from entities import Enemy
 from ui import UI
+
+from .combat import Combat
 
 
 class Game:
@@ -14,6 +17,7 @@ class Game:
         self.player = player
         self.current_location = start_location
         self.is_running = True
+        self._combat = Combat(player)
     
     def show_status(self):
         """Виводить поточний статус гравця та локації"""
@@ -42,6 +46,7 @@ class Game:
         Args:
             choice: Введений гравцем вибір
         """
+        choice = choice.strip()
         choice_lower = choice.lower()
         
         # Обробка системної команди "вийти"
@@ -51,9 +56,11 @@ class Game:
                 print("\nВи залишаєте гру...")
             return
         
-        # Обробка дій локації
-        self.current_location.handle_action(choice, self.player)
-    
+        # Обробка дій локації (дослідження може повернути ворога)
+        encounter = self.current_location.handle_action(choice, self.player)
+        if isinstance(encounter, Enemy):
+            self._combat.run([encounter])
+
     def check_game_over(self):
         """Перевіряє чи гра завершена (персонаж загинув)"""
         if not self.player.is_alive():
