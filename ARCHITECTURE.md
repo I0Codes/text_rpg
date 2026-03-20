@@ -241,10 +241,11 @@ class Inventory:
     - max_capacity: int
 
     methods:
-    - add_item(item) -> bool
-    - remove_item(item)
-    - use_item(item, character)
-    - get_items_by_type(item_type) -> list
+    - add_item(item) -> bool  # додає предмет, враховуючи обмеження за слотами та стекування
+    - remove_item(item) -> bool  # видаляє/зменшує кількість
+    - use_item(item, character) -> bool  # викликає item.use та видаляє спожиті
+    - get_items_by_type(item_type) -> list  # фільтрація
+    - show_inventory()  # виводить список вмісту
 ```
 
 #### `effects.py`

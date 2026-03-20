@@ -5,7 +5,7 @@ from .attributes import Attributes
 
 class Enemy(Character):
     def __init__(self, name, hp, attack, defense, level=1, xp_reward=0, reward_gold=0):
-        super().__init__(name, hp, level)
+        super().__init__(name, hp, max_hp=hp, stamina=0, max_stamina=0, level=level)
         # Базові бойові характеристики
         self.base_attack = attack
         self.defense = defense
@@ -40,7 +40,7 @@ class Enemy(Character):
 
     # Нагорода за перемогу
     def get_loot(self):
-        return {"exp": self.reward_exp, "gold": self.reward_gold}
+        return {"exp": self.xp_reward, "gold": self.reward_gold}
 
     # Простий AI: поки що завжди атакує
     def select_action(self, battlefield=None):
