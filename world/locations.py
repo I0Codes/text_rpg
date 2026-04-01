@@ -1,5 +1,6 @@
 import random
 from entities.enemies import Goblin, Wolf, Bandit, Orc, Troll, Dragon
+from items.item import RustyDagger, IronSword, SteelAxe, WoodenStaff
 
 
 class Location:
@@ -7,7 +8,34 @@ class Location:
     
     def __init__(self, name):
         self.name = name
-    
+
+    def _try_find_weapon(self, hero):
+        """Середній шанс знайти зброю, рідкісніша — рідше."""
+        # базовий шанс знайти зброю, коли нічого не зустріли
+        weapon_find_chance = 0.35
+        if random.random() >= weapon_find_chance:
+            return None
+
+        weapon_table = [
+            (RustyDagger, 0.60),
+            (IronSword, 0.25),
+            (SteelAxe, 0.10),
+            (WoodenStaff, 0.05),
+        ]
+
+        pick = random.random()
+        cumulative = 0.0
+        for cls, weight in weapon_table:
+            cumulative += weight
+            if pick <= cumulative:
+                weapon = cls()
+                if hero.add_item(weapon):
+                    print(f"🎉 Ви знайшли зброю: {weapon.name} ({weapon.damage_type}, {weapon.damage} шкоди)!")
+                else:
+                    print("⚠️ Знахідка виявилася зброєю, але інвентар переповнений.")
+                return weapon
+
+        return None
     def get_actions(self):
         """Повертає доступні дії"""
         return {
@@ -35,6 +63,9 @@ class Location:
             return enemy
         else:
             print(f"\nВи дослідили {self.name}... але нікого не зустріли.")
+            found_weapon = self._try_find_weapon(hero)
+            if found_weapon is None:
+                print("🔎 Ви нічого корисного не знайшли цього разу.")
             return None
 
     def _rest(self, hero):

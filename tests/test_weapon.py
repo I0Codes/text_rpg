@@ -1,5 +1,3 @@
-import pytest
-
 from entities.characters import Character
 from items.item import RustyDagger, IronSword, SteelAxe, WoodenStaff
 
@@ -44,3 +42,31 @@ def test_weapon_strength_requirements():
 
     char.attributes.update(strength=4)
     assert IronSword().can_equip(char) is False
+
+
+def test_location_weapon_spawn():
+    from world.locations import Location
+
+    class TestLocation(Location):
+        def __init__(self):
+            super().__init__("Test")
+
+    player = Character("TestHero", hp=100, max_hp=100, stamina=50, max_stamina=50)
+    loc = TestLocation()
+
+    # Закріплюємо random для стабільного тесту
+    import random
+    random.seed(0)
+
+    # Пробуємо кілька обходів, де має бути хоча б декілька знайдених зброї
+    found = 0
+    for _ in range(30):
+        enemy = loc.handle_action("1", player)
+        if enemy is None:
+            # як тільки зброя знайдена, inventory має ненульовий length
+            if player.inventory.items:
+                found += 1
+                player.inventory.items.clear()
+
+    assert found > 0
+
