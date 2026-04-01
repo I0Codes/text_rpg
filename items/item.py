@@ -38,3 +38,99 @@ class Item:
 
     def __str__(self):
         return f"Item(name={self.name!r}, qty={self.quantity})"
+
+
+class Weapon(Item):
+    """Клас зброї"""
+
+    def __init__(self, name, description, damage, damage_type, value, required_strength=0, weight=0.0):
+        if damage_type not in ("PHYSICAL", "MAGICAL"):
+            raise ValueError("damage_type must be 'PHYSICAL' or 'MAGICAL'")
+
+        super().__init__("weapon", name, description=description, weight=weight, value=value)
+        self.damage = damage
+        self.damage_type = damage_type
+        self.required_strength = required_strength
+
+    def can_equip(self, character):
+        attrs = getattr(character, "attributes", None)
+        if attrs is None or not hasattr(attrs, "strength"):
+            return False
+        return attrs.strength >= self.required_strength
+
+
+class Dagger(Weapon):
+    """Клас кинджалів"""
+    pass
+
+
+class Sword(Weapon):
+    """Клас мечів"""
+    pass
+
+
+class Axe(Weapon):
+    """Клас сокир"""
+    pass
+
+
+class Club(Weapon):
+    """Клас булав"""
+    pass
+
+
+class Staff(Weapon):
+    """Клас посохів"""
+    pass
+
+
+class RustyDagger(Dagger):
+    def __init__(self):
+        super().__init__(
+            name="Rusty Dagger",
+            description="Початкова кинджалоподібна зброя.",
+            damage=5,
+            damage_type="PHYSICAL",
+            value=10,
+            required_strength=0,
+            weight=1.0,
+        )
+
+
+class IronSword(Sword):
+    def __init__(self):
+        super().__init__(
+            name="Iron Sword",
+            description="Базовий меч з заліза.",
+            damage=15,
+            damage_type="PHYSICAL",
+            value=50,
+            required_strength=5,
+            weight=4.0,
+        )
+
+
+class SteelAxe(Axe):
+    def __init__(self):
+        super().__init__(
+            name="Steel Axe",
+            description="Важка сокира, що наносить багато шкоди.",
+            damage=25,
+            damage_type="PHYSICAL",
+            value=90,
+            required_strength=8,
+            weight=6.0,
+        )
+
+
+class WoodenStaff(Staff):
+    def __init__(self):
+        super().__init__(
+            name="Wooden Staff",
+            description="Магічний посох для початківців.",
+            damage=20,
+            damage_type="MAGICAL",
+            value=45,
+            required_strength=0,
+            weight=3.0,
+        )
