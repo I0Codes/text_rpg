@@ -256,3 +256,22 @@ class MysteriousChestEvent(ChoiceEvent):
         result = "Ви залишили скриню. Нічого не сталося."
         print(result)
         return result
+
+def get_random_event():
+    events = [
+        TreasureChestEvent(),
+        RestSiteEvent(),
+        MerchantEvent(),
+        AmbushEvent(),
+        SwampStreamEvent(),
+        CliffClimbEvent(),
+        MysteriousChestEvent()
+    ]
+    total_chance = sum(event.chance for event in events)
+    rand = random.uniform(0, total_chance)
+    cumulative = 0
+    for event in events:
+        cumulative += event.chance
+        if rand <= cumulative:
+            return event
+    return None
