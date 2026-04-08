@@ -113,30 +113,21 @@ class Character:
       
 class Warrior(Character):
     def __init__(self, name):
-        super().__init__(name, hp=BASE_HP + 20, max_hp=BASE_HP + 20, stamina=BASE_STAMINA, max_stamina=BASE_STAMINA)
+        super().__init__(name, hp=120, max_hp=120, stamina=100, max_stamina=100)
         self.attributes.update(strength=10, intelligence=3, agility=5, luck=5)
-        
+
 class Mage(Character):
     def __init__(self, name):
-        super().__init__(name, hp=BASE_HP - 20, max_hp=BASE_HP - 20, stamina=BASE_STAMINA - 40, max_stamina=BASE_STAMINA - 40)
-        self.max_mana = BASE_MANA + 70
-        self.mana = BASE_MANA + 70
-        self.attributes.strength = 3
-        self.attributes.intelligence = 10
-        self.attributes.agility = 4
-        self.attributes.luck = 6
+        super().__init__(name, hp=80, max_hp=80, stamina=60, max_stamina=60)
+        self.max_mana = 120
+        self.mana = 120
+        self.attributes.update(strength=3, intelligence=10, agility=4, luck=6)
+
+    def restore_mana(self, amount):
+        self.mana = min(self.max_mana, self.mana + amount)
+        print(f"{self.name} відновив {amount} мани. Мана: {self.mana}")
 
 class Scout(Character):
     def __init__(self, name):
-        super().__init__(name, hp=BASE_HP - 10, max_hp=BASE_HP - 10, stamina=BASE_STAMINA + 20, max_stamina=BASE_STAMINA + 20)
-        self.attributes.strength = 5
-        self.attributes.intelligence = 4
-        self.attributes.agility = 10
-        self.attributes.luck = 8
-
-# TODO: додати класи Warrior, Mage, Scout через наслідування від Character
-# Приклад:
-# class Warrior(Character):
-#     def __init__(self, name):
-#         super().__init__(name, hp=150)
-#         self.strength = 10
+        super().__init__(name, hp=90, max_hp=90, stamina=120, max_stamina=120)
+        self.attributes.update(strength=5, intelligence=4, agility=10, luck=8)
