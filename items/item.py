@@ -26,6 +26,13 @@ class Item:
 
         Повертає True якщо предмет використано, False за замовчуванням.
         """
+        if self.item_type == "consumable":
+            heal_amount = getattr(self, "value", 0) or 10
+            if hasattr(user, "heal"):
+                user.heal(heal_amount)
+            print(f"Ви використовуєте {self.name}, відновлено {heal_amount} HP.")
+            return True
+
         print(f"Ви намагаєтеся використати {self.name}, але нічого не відбувається.")
         return False
 

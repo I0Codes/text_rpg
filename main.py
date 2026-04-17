@@ -1,22 +1,31 @@
+import random
 from core import Game
-from entities import Character, Enemy
 from world import Forest
+from world.events import get_random_event
+from ui.menus import MainMenu, CharacterCreationMenu
+
 
 def main():
     """Точка входу в гру"""
-    # Створюємо персонажа
-    player = Character(name="Hero", hp=100)
-    
-    # Створюємо початкову локацію
+    action = MainMenu.show()
+
+    if action == "exit":
+        print("Вихід з гри.")
+        return
+
+    if action == "load_game":
+        print("Функція завантаження поки не реалізована.")
+        return
+
+    if action == "new_game":
+        player = CharacterCreationMenu.show()
+    else:
+        player = CharacterCreationMenu.show()
+
     forest = Forest()
-    
-    # Створюємо та запускаємо гру
     game = Game(player, forest)
     game.run()
 
-# TODO: інтегрувати MainMenu для вибору "Нова гра" / "Завантажити гру"
-# TODO: додати вибір класу персонажа (Warrior, Mage, Scout)
-# TODO: додати можливість вводити ім'я персонажа
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,8 @@
+from entities import Enemy
 from ui import UI
+from world.locations import Location
+
+from .combat import Combat
 
 
 class Game:
@@ -14,13 +18,21 @@ class Game:
         self.player = player
         self.current_location = start_location
         self.is_running = True
+        self._combat = Combat(player)
     
     def show_status(self):
         """Виводить поточний статус гравця та локації"""
         UI.print_separator()
         status = f"Персонаж: {self.player.name}\n"
-        status += f"HP: {self.player.hp}\n"
+        status += f"Рівень: {self.player.level}\n"
+        status += f"HP: {self.player.hp}/{self.player.max_hp}\n"
+        
+        # Інформація про досвід
+        exp_summary = self.player.experience_manager.get_summary()
+        progress = exp_summary['progress_percentage']
+        status += f"Досвід: {exp_summary['total_experience']}/{exp_summary['experience_to_next_level']} ({progress:.1f}%)\n"
         status += f"Локація: {self.current_location.name}"
+        
         UI.print_status(status)
         UI.print_separator()
     
@@ -35,6 +47,7 @@ class Game:
         Args:
             choice: Введений гравцем вибір
         """
+        choice = choice.strip()
         choice_lower = choice.lower()
         
         # Обробка системної команди "вийти"
@@ -44,9 +57,15 @@ class Game:
                 print("\nВи залишаєте гру...")
             return
         
-        # Обробка дій локації
-        self.current_location.handle_action(choice, self.player)
-    
+        # Обробка дій локації (дослідження може повернути ворога або перейти на іншу локацію)
+        result = self.current_location.handle_action(choice, self.player)
+
+        if isinstance(result, Enemy):
+            self._combat.run([result])
+        elif isinstance(result, Location):
+            self.current_location = result
+            print(f"\n⇨ Ви перемістилися до {self.current_location.name}")
+
     def check_game_over(self):
         """Перевіряє чи гра завершена (персонаж загинув)"""
         if not self.player.is_alive():
