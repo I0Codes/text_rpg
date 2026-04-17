@@ -185,7 +185,7 @@ class Character:
       
 class Warrior(Character):
     def __init__(self, name):
-        super().__init__(name, hp=BASE_HP + 20, max_hp=BASE_HP + 20, stamina=BASE_STAMINA, max_stamina=BASE_STAMINA)
+        super().__init__(name, hp=120, max_hp=120, stamina=100, max_stamina=100)
         self.attributes.update(strength=10, intelligence=3, agility=5, luck=5)
 
     def get_level_bonuses(self, level):
@@ -200,13 +200,14 @@ class Warrior(Character):
         
 class Mage(Character):
     def __init__(self, name):
-        super().__init__(name, hp=BASE_HP - 20, max_hp=BASE_HP - 20, stamina=BASE_STAMINA - 40, max_stamina=BASE_STAMINA - 40)
-        self.max_mana = BASE_MANA + 70
-        self.mana = BASE_MANA + 70
-        self.attributes.strength = 3
-        self.attributes.intelligence = 10
-        self.attributes.agility = 4
-        self.attributes.luck = 6
+        super().__init__(name, hp=80, max_hp=80, stamina=60, max_stamina=60)
+        self.max_mana = 120
+        self.mana = 120
+        self.attributes.update(strength=3, intelligence=10, agility=4, luck=6)
+
+    def restore_mana(self, amount):
+        self.mana = min(self.max_mana, self.mana + amount)
+        print(f"{self.name} відновив {amount} мани. Мана: {self.mana}")
 
     def get_level_bonuses(self, level):
         bonuses = {
