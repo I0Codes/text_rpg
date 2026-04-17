@@ -1,6 +1,4 @@
 import random
-import sys
-sys.path.append('d:\\9-B\\text_rpg')
 from dice_system import DiceSystem
 
 class Event:
