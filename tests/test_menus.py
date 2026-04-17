@@ -1,6 +1,8 @@
 import pytest
 
+from core.game import Game
 from ui.menus import MainMenu, CharacterCreationMenu, InventoryMenu
+from world.locations import Village
 from entities.characters import Character
 from items.item import Item
 
@@ -32,3 +34,25 @@ def test_inventory_menu_use_item(monkeypatch):
 
     InventoryMenu.show(player)
     assert potion not in player.inventory.items
+
+
+def test_game_inventory_action_opens_inventory_menu(monkeypatch):
+    player = Character(name="Test", hp=100, max_hp=100, stamina=50, max_stamina=50)
+    game = Game(player, Village())
+    called = []
+
+    monkeypatch.setattr(InventoryMenu, "show", lambda p: called.append(p))
+    game.handle_action("i")
+
+    assert called == [player]
+
+
+def test_game_status_action_shows_status(monkeypatch):
+    player = Character(name="Test", hp=100, max_hp=100, stamina=50, max_stamina=50)
+    game = Game(player, Village())
+    called = []
+
+    monkeypatch.setattr(game, "show_status", lambda: called.append(True))
+    game.handle_action("s")
+
+    assert called == [True]
