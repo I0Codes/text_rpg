@@ -24,6 +24,10 @@ class Character:
         self.max_stamina = max_stamina
         self.max_mana = BASE_MANA
         self.mana = BASE_MANA
+        self.crit_bonus = 0.0
+        self.dodge_bonus = 0.0
+        self.mana_cost_reduction = 0.0
+        self.skills = []
         self.attributes = Attributes(
             strength=5,
             intelligence=5,
@@ -60,6 +64,74 @@ class Character:
         self.attributes.intelligence += 1
         self.attributes.agility += 1
         self.attributes.luck += 1
+
+    def get_level_bonuses(self, level):
+        """
+        Повертає словник бонусів для конкретного рівня.
+        Кожен клас перевизначає цей метод.
+        Повертає: {"hp": 0, "stamina": 0, "mana": 0, "crit": 0, "dodge": 0, "skill": None}
+        """
+        return {}
+
+    def apply_level_bonus(self, level):
+        """
+        Застосовує бонуси при досягненні рівня.
+        Викликається автоматично при level_up().
+        """
+        bonuses = self.get_level_bonuses(level)
+        if not bonuses:
+            return {}
+
+        messages = []
+
+        if 'hp' in bonuses:
+            self.max_hp += bonuses['hp']
+            self.hp = self.max_hp
+            messages.append(f"+{bonuses['hp']} HP")
+
+        if 'stamina' in bonuses:
+            self.max_stamina += bonuses['stamina']
+            self.stamina = self.max_stamina
+            messages.append(f"+{bonuses['stamina']} Stamina")
+
+        if 'mana' in bonuses:
+            self.max_mana += bonuses['mana']
+            self.mana = self.max_mana
+            messages.append(f"+{bonuses['mana']} Mana")
+
+        if 'crit' in bonuses:
+            self.crit_bonus += bonuses['crit']
+            messages.append(f"+{int(bonuses['crit'] * 100)}% Crit Chance")
+
+        if 'dodge' in bonuses:
+            self.dodge_bonus += bonuses['dodge']
+            messages.append(f"+{int(bonuses['dodge'] * 100)}% Dodge Chance")
+
+        if 'mana_cost_reduction' in bonuses:
+            self.mana_cost_reduction += bonuses['mana_cost_reduction']
+            messages.append(f"-{int(bonuses['mana_cost_reduction'] * 100)}% Spell Cost")
+
+        if 'skill' in bonuses:
+            self.skills.append(bonuses['skill'])
+            messages.append(f"Skill unlocked: {bonuses['skill']}")
+
+        if messages:
+            print(f"🎁 Бонуси за рівень {level}: {'; '.join(messages)}")
+
+        return bonuses
+
+    def get_next_milestone(self):
+        """
+        Показує наступний важливий рівень та що дасть.
+        """
+        next_level = self.level + 1
+        while next_level <= self.level + 20:
+            bonuses = self.get_level_bonuses(next_level)
+            if bonuses:
+                return {'level': next_level, 'bonuses': bonuses}
+            next_level += 1
+
+        return None
 
     def gain_gold(self, amount):
         self.gold += amount
@@ -115,6 +187,16 @@ class Warrior(Character):
     def __init__(self, name):
         super().__init__(name, hp=BASE_HP + 20, max_hp=BASE_HP + 20, stamina=BASE_STAMINA, max_stamina=BASE_STAMINA)
         self.attributes.update(strength=10, intelligence=3, agility=5, luck=5)
+
+    def get_level_bonuses(self, level):
+        bonuses = {
+            2: {"hp": 5},
+            4: {"hp": 10},
+            6: {"skill": "Whirlwind"},
+            8: {"stamina": 5},
+            10: {"hp": 15}
+        }
+        return bonuses.get(level, {})
         
 class Mage(Character):
     def __init__(self, name):
@@ -126,6 +208,16 @@ class Mage(Character):
         self.attributes.agility = 4
         self.attributes.luck = 6
 
+    def get_level_bonuses(self, level):
+        bonuses = {
+            2: {"mana": 10},
+            4: {"mana": 15},
+            6: {"skill": "Ice Storm"},
+            8: {"mana": 5},
+            10: {"mana_cost_reduction": 0.1}
+        }
+        return bonuses.get(level, {})
+
 class Scout(Character):
     def __init__(self, name):
         super().__init__(name, hp=BASE_HP - 10, max_hp=BASE_HP - 10, stamina=BASE_STAMINA + 20, max_stamina=BASE_STAMINA + 20)
@@ -133,6 +225,16 @@ class Scout(Character):
         self.attributes.intelligence = 4
         self.attributes.agility = 10
         self.attributes.luck = 8
+
+    def get_level_bonuses(self, level):
+        bonuses = {
+            2: {"stamina": 5},
+            4: {"crit": 0.02},
+            6: {"skill": "Smoke Bomb"},
+            8: {"dodge": 0.03},
+            10: {"stamina": 10}
+        }
+        return bonuses.get(level, {})
 
 # TODO: додати класи Warrior, Mage, Scout через наслідування від Character
 # Приклад:

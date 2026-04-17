@@ -41,6 +41,8 @@ class ExperienceManager:
         # Викликаємо метод покращення характеристик
         if hasattr(self.character, 'level_up_stats'):
             self.character.level_up_stats()
+        if hasattr(self.character, 'apply_level_bonus'):
+            self.character.apply_level_bonus(self.character.level)
         
         print(f"🎉 Новий рівень! Ви тепер рівня {self.character.level}!")
         print(f"📊 Потрібно {self.experience_to_next_level} досвіду до наступного рівня")
