@@ -4,6 +4,14 @@ from world.locations import Village, Cave, DarkForest, create_world_map
 from entities.characters import Character
 
 
+def test_location_actions_include_inventory_and_status():
+    village = Village()
+    actions = village.get_actions()
+
+    assert actions["i"] == "Переглянути інвентар"
+    assert actions["s"] == "Переглянути статус персонажа"
+
+
 def test_location_transitions():
     world = create_world_map()
     assert world.name == "Село"
