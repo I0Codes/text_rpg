@@ -1,6 +1,7 @@
 from items.inventory import Inventory
 from entities.attributes import Attributes
 from entities.experience import ExperienceManager
+from entities.leveling_system import LevelingSystem
 from config.settings import BASE_HP, BASE_STAMINA, BASE_MANA
 
 class Character:
@@ -35,6 +36,7 @@ class Character:
             luck=5
         )
         self.experience_manager = ExperienceManager(self)
+        self.leveling_system = LevelingSystem(self)
         self.gold = 0
     
     def is_alive(self):
