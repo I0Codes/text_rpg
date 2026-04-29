@@ -1,9 +1,10 @@
-from entities import Enemy
-from ui import UI
+from entities.enemies import Enemy
+from ui import UI, ProgressionUI
 from ui.menus import InventoryMenu
 from world.locations import Location
 
 from .combat import Combat
+from .game_engine import GameEngine
 
 
 class Game:
@@ -32,6 +33,10 @@ class Game:
         exp_summary = self.player.experience_manager.get_summary()
         progress = exp_summary['progress_percentage']
         status += f"Досвід: {exp_summary['total_experience']}/{exp_summary['experience_to_next_level']} ({progress:.1f}%)\n"
+
+        totals = GameEngine.calculate_total_stats(self.player)
+        status += f"Макс HP: {totals['max_hp']}  Crit: {totals['crit_chance']:.1%}  Dodge: {totals['dodge_chance']:.1%}\n"
+        status += f"Фізичне ураження: {totals['physical_damage']:.1f}  Магічне ураження: {totals['magical_damage']:.1f}\n"
         status += f"Локація: {self.current_location.name}"
         
         UI.print_status(status)
@@ -58,6 +63,15 @@ class Game:
                 print("\nВи залишаєте гру...")
             return 
         
+        # Службові команди гравця
+        if choice_lower in ["статус", "status", "листок", "sheet"]:
+            ProgressionUI.display_character_sheet(self.player)
+            return
+
+        if choice_lower in ["атрибути", "attributes", "attribute"]:
+            ProgressionUI.display_attribute_menu(self.player)
+            return
+
         # Обробка дій локації (дослідження може повернути ворога або перейти на іншу локацію)
         result = self.current_location.handle_action(choice, self.player)
 
@@ -84,7 +98,7 @@ class Game:
     def run(self):
         """Головний ігровий цикл"""
         print("\n🌲 Гра розпочалась!")
-        print("Системні команди: вийти")
+        print("Системні команди: вийти, статус, листок, атрибути")
         
         while self.is_running:
             self.show_status()
