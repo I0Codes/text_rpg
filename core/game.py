@@ -56,8 +56,15 @@ class Game:
             if UI.confirm("Ви впевнені що хочете вийти з гри?"):
                 self.is_running = False
                 print("\nВи залишаєте гру...")
-            return
+            return 
         
+        # Обробка дій локації (дослідження може повернути ворога або перейти на іншу локацію)
+        result = self.current_location.handle_action(choice, self.player)
+
+        if isinstance(result, Enemy):
+            self._combat.run([result])
+        elif isinstance(result, Location):
+            self.current_location = result
         if choice_lower == "i":
             InventoryMenu.show(self.player)
             return
