@@ -19,6 +19,8 @@ class Location:
         actions = {
             "1": "Дослідити місцевість",
             "2": "Відпочити",
+            "i": "Переглянути інвентар",
+            "s": "Переглянути статус персонажа",
         }
         for key, loc in self.neighbors.items():
             actions[key] = f"Перейти до {loc.name}"

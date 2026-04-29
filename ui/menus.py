@@ -1,4 +1,5 @@
-from entities.characters import Character
+import random
+from entities.characters import Character, Warrior, Mage, Scout
 
 
 class MainMenu:
@@ -33,49 +34,59 @@ class CharacterCreationMenu:
     def show():
         print("\n=== СТВОРЕННЯ ПЕРСОНАЖА ===")
 
-        # Вибір класу (просто для відображення, реалізуємо як дані)
         classes = {
-            "1": "Warrior",
-            "2": "Mage",
-            "3": "Scout",
+            "1": ("Warrior", Warrior),
+            "2": ("Mage", Mage),
+            "3": ("Scout", Scout),
         }
 
         selected = None
         while selected not in classes:
-            for key, value in classes.items():
-                print(f"{key}. {value}")
+            for key, (label, _) in classes.items():
+                print(f"{key}. {label}")
             selected = input("Виберіть клас: ").strip()
 
-        chosen_class = classes[selected]
+        chosen_label, chosen_cls = classes[selected]
 
         name = input("Введіть ім'я персонажа: ").strip()
         if not name:
             name = "Герой"
 
-        # Базова конфігурація персонажа
-        player = Character(name=name, hp=100, max_hp=100, stamina=50, max_stamina=50)
+        player = chosen_cls(name)
 
         points = 10
-        attrs = ["strength", "intelligence", "agility", "luck"]
+        attrs = {
+            "1": ("strength", "Strength"),
+            "2": ("intelligence", "Intelligence"),
+            "3": ("agility", "Agility"),
+            "4": ("luck", "Luck"),
+        }
 
         print("\nРозподіліть початкові очки характеристик.")
         while points > 0:
-            print(f"Залишилося очок: {points}")
-            for attribute in attrs:
-                current = getattr(player.attributes, attribute, 0)
-                print(f"  {attribute}: {current}")
+            print(f"\nЗалишилося очок: {points}")
+            for key, (attr, label) in attrs.items():
+                current = getattr(player.attributes, attr, 0)
+                print(f"  {key}. {label}: {current}")
+            print("  5. Випадковий розподіл")
 
-            choice = input("Введіть атрибут для додавання (або 'готово'): ").strip().lower()
+            choice = input("Виберіть атрибут: ").strip()
             if choice in attrs:
-                old = getattr(player.attributes, choice, 0)
-                setattr(player.attributes, choice, old + 1)
+                attr_name = attrs[choice][0]
+                old = getattr(player.attributes, attr_name, 0)
+                setattr(player.attributes, attr_name, old + 1)
                 points -= 1
-            elif choice in ["готово", "гото", "end"]:
-                break
+            elif choice == "5":
+                attr_names = [a for a, _ in attrs.values()]
+                for _ in range(points):
+                    attr = random.choice(attr_names)
+                    old = getattr(player.attributes, attr, 0)
+                    setattr(player.attributes, attr, old + 1)
+                points = 0
             else:
-                print("Невірний вибір атрибуту.")
+                print("Невірний вибір.")
 
-        print(f"\nСтворено персонажа: {player.name} ({chosen_class})")
+        print(f"\nСтворено персонажа: {player.name} ({chosen_label})")
         return player
 
 

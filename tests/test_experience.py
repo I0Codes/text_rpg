@@ -76,6 +76,22 @@ class TestExperienceManager(unittest.TestCase):
         
         self.assertEqual(self.character.level, initial_level + 1)
         self.assertEqual(self.exp_manager.total_experience, 0)
+
+    def test_level_up_applies_level_bonus(self):
+        """Перевірка виклику apply_level_bonus під час level_up"""
+        class BonusCharacter(MockCharacter):
+            def __init__(self):
+                super().__init__()
+                self.bonus_applied = False
+
+            def apply_level_bonus(self, level):
+                self.bonus_applied = True
+
+        character = BonusCharacter()
+        exp_manager = ExperienceManager(character)
+        exp_manager.gain_experience(100, source="combat")
+
+        self.assertTrue(character.bonus_applied)
     
     def test_multiple_level_ups(self):
         """Кілька рівнів одночасно"""

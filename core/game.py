@@ -1,5 +1,6 @@
 from entities import Enemy
 from ui import UI
+from ui.menus import InventoryMenu
 from world.locations import Location
 
 from .combat import Combat
@@ -57,13 +58,14 @@ class Game:
                 print("\nВи залишаєте гру...")
             return
         
-        # Обробка дій локації (дослідження може повернути ворога або перейти на іншу локацію)
-        result = self.current_location.handle_action(choice, self.player)
+        if choice_lower == "i":
+            InventoryMenu.show(self.player)
+            return
 
-        if isinstance(result, Enemy):
-            self._combat.run([result])
-        elif isinstance(result, Location):
-            self.current_location = result
+        if choice_lower == "s":
+            self.show_status()
+            return
+
             print(f"\n⇨ Ви перемістилися до {self.current_location.name}")
 
     def check_game_over(self):
