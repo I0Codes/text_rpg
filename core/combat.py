@@ -67,13 +67,15 @@ class Combat:
                     if pick.isdigit() and 1 <= int(pick) <= len(consumables):
                         self.player.use_item(consumables[int(pick) - 1])
             elif choice == "4":
+                print("Воно не працює!!! Нема скілів")
+            elif choice == "5":
                 flee_roll = 0.35 + self.player.attributes.agility * 0.02
                 if random.random() < min(flee_roll, 0.75):
                     print("Вам вдалося втекти з бою.")
                     return
                 print("Втеча не вдалася!")
             else:
-                print("Невідома команда. Спробуйте 1–4.")
+                print("Невідома команда. Спробуйте 1–5.")
                 continue
 
             alive = [e for e in alive if e.is_alive()]
