@@ -1,8 +1,13 @@
+from ui.progression_ui import ProgressionUI
+
+
 class ExperienceManager:
     def __init__(self, character):
+        from core.game_engine import GameEngine
+
         self.character = character
         self.total_experience = 0
-        self.experience_to_next_level = 100
+        self.experience_to_next_level = GameEngine.calculate_level_requirements(self.character.level)
         self.experience_sources = []  # Логування джерел досвіду
     
     def gain_experience(self, amount, source="unknown"):
@@ -23,20 +28,21 @@ class ExperienceManager:
             'total': self.total_experience
         })
         
-        print(f"✨ +{amount} досвіду від {source}!")
+        ProgressionUI.display_experience_gain(amount, source, self.get_progress_percentage())
         
         # Перевірка рівня
         while self.total_experience >= self.experience_to_next_level:
             self._level_up()
     
     def _level_up(self):
-        """Підвищення рівня персонажа з експоненціальним зростанням вимог"""
+        """Підвищення рівня персонажа"""
+        from core.game_engine import GameEngine
+
         remaining_exp = self.total_experience - self.experience_to_next_level
         self.character.level += 1
         self.total_experience = remaining_exp
         
-        # Експоненціальне зростання: 100 * 1.15^(рівень-1)
-        self.experience_to_next_level = int(100 * (1.15 ** (self.character.level - 1)))
+        self.experience_to_next_level = GameEngine.calculate_level_requirements(self.character.level)
         
         # Викликаємо метод покращення характеристик
         if hasattr(self.character, 'level_up_stats'):
@@ -44,8 +50,7 @@ class ExperienceManager:
         if hasattr(self.character, 'apply_level_bonus'):
             self.character.apply_level_bonus(self.character.level)
         
-        print(f"🎉 Новий рівень! Ви тепер рівня {self.character.level}!")
-        print(f"📊 Потрібно {self.experience_to_next_level} досвіду до наступного рівня")
+        ProgressionUI.display_level_up(self.character, self.character.level)
     
     def calculate_experience_reward(self, enemy_level, player_level):
         """
