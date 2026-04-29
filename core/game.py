@@ -1,5 +1,6 @@
 from entities.enemies import Enemy
 from ui import UI, ProgressionUI
+from ui.menus import InventoryMenu
 from world.locations import Location
 
 from .combat import Combat
@@ -60,7 +61,7 @@ class Game:
             if UI.confirm("Ви впевнені що хочете вийти з гри?"):
                 self.is_running = False
                 print("\nВи залишаєте гру...")
-            return
+            return 
         
         # Службові команди гравця
         if choice_lower in ["статус", "status", "листок", "sheet"]:
@@ -78,6 +79,14 @@ class Game:
             self._combat.run([result])
         elif isinstance(result, Location):
             self.current_location = result
+        if choice_lower == "i":
+            InventoryMenu.show(self.player)
+            return
+
+        if choice_lower == "s":
+            self.show_status()
+            return
+
             print(f"\n⇨ Ви перемістилися до {self.current_location.name}")
 
     def check_game_over(self):
