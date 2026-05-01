@@ -63,6 +63,7 @@ class Game:
                 print("\nВи залишаєте гру...")
             return 
         
+        
         # Службові команди гравця
         if choice_lower in ["статус", "status", "листок", "sheet"]:
             ProgressionUI.display_character_sheet(self.player)
@@ -79,14 +80,25 @@ class Game:
             self._combat.run([result])
         elif isinstance(result, Location):
             self.current_location = result
+            
+        # Перегляд інвентарю
         if choice_lower == "i":
             InventoryMenu.show(self.player)
             return
-
+        
+        # Перегляд статусу
         if choice_lower == "s":
             self.show_status()
             return
+        
+        # Обробка дій локації (дослідження може повернути ворога або перейти на іншу локацію)
+        result = self.current_location.handle_action(choice, self.player)
 
+        if isinstance(result, Enemy):
+            # Розпочати бій
+            self._combat.run([result])
+        elif isinstance(result, Location):
+            self.current_location = result
             print(f"\n⇨ Ви перемістилися до {self.current_location.name}")
 
     def check_game_over(self):
@@ -98,17 +110,43 @@ class Game:
     def run(self):
         """Головний ігровий цикл"""
         print("\n🌲 Гра розпочалась!")
-        print("Системні команди: вийти, статус, листок, атрибути")
+        print("Системні команди: вийти, допомога")
+        print("-" * 40)
         
         while self.is_running:
             self.show_status()
             self.show_actions()
             
-            choice = input("\nВаш вибір: ")
+            choice = input("\nВаш вибір: ").strip()
+            
+            # Системні команди
+            if choice.lower() == "вийти":
+                if UI.confirm("Ви впевнені що хочете вийти з гри?"):
+                    self.is_running = False
+                    print("\nВи залишаєте гру...")
+                continue
+            elif choice.lower() == "допомога":
+                self._show_help()
+                continue
+            
             self.handle_action(choice)
             self.check_game_over()
         
         print("\n🎮 Гру завершено.")
+    
+    def _show_help(self):
+        """Показати допомогу гравцю"""
+        print("\n" + "=" * 40)
+        print("📖 ДОПОМОГА")
+        print("=" * 40)
+        print("1 - Дослідити місцевість (можливий бій)")
+        print("2 - Відпочити (відновити HP)")
+        print("i - Переглянути інвентар")
+        print("s - Переглянути статус персонажа")
+        print("3+ - Перейти до сусідньї локації")
+        print("вийти - Завершити гру")
+        print("допомога - Показати цю підказку")
+        print("=" * 40)
 
 # TODO: додати команду "допомога" яка показує пояснення гри
 # TODO: додати клас MainMenu для вибору "Нова гра" / "Завантажити гру"
