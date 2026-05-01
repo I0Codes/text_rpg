@@ -104,25 +104,45 @@ class DarkForest(Location):
 
 
 class Forest(Location):
+    """Ліс - початкова локація з помірним шансом зустрічі ворога"""
+    
     def __init__(self):
-        super().__init__("Темний ліс")
+        super().__init__("Ліс")
+
+    def _explore(self, hero):
+        """Дослідження лісу з середнім шансом зустрічі ворога"""
+        chance = 0.5  # 50% шанс зустрічі
+        if random.random() < chance:
+            enemy = self._get_random_enemy(hero.level)
+            print(f"\n⚔️ Ви зустріли {enemy.name} (рів. {enemy.level}) у лісі!")
+            return enemy
+        print(f"\nВи дослідили {self.name}, але нікого не зустріли.")
+        return None
 
 
 def create_world_map():
+    """Створити карту світу"""
     village = Village()
+    forest = Forest()
     dark_forest = DarkForest()
     cave = Cave()
 
+    # Налаштування зв'язків між локаціями
     village.neighbors = {
         "3": dark_forest,
+    }
+    forest.neighbors = {
+        "3": dark_forest,
+        "4": village,
     }
     dark_forest.neighbors = {
         "3": cave,
         "4": village,
+        "5": forest,
     }
     cave.neighbors = {
         "3": dark_forest,
     }
 
-    return village
+    return forest  # Ліс - початкова локація
 
