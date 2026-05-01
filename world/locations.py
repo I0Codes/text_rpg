@@ -58,19 +58,6 @@ class Location:
         enemy_class = random.choice(enemy_classes)
         return enemy_class(level=enemy_level)
 
-    def trigger_combat(self, player):
-        """Розпочати випадковий бій з ворогом у локації.
-        
-        Args:
-            player: Об'єкт гравця
-            
-        Returns:
-            Enemy: Об'єкт ворога для бою
-        """
-        enemy = self._get_random_enemy(player.level)
-        print(f"\n⚔️ Ви зустріли {enemy.name} (рів. {enemy.level})!")
-        return enemy
-
 
 class Village(Location):
     def __init__(self):
@@ -131,12 +118,6 @@ class Forest(Location):
             return enemy
         print(f"\nВи дослідили {self.name}, але нікого не зустріли.")
         return None
-
-    def trigger_combat(self, player):
-        """Розпочати випадковий бій у лісі"""
-        enemy = self._get_random_enemy(player.level)
-        print(f"\n⚔️ У лісі вас атакує {enemy.name} (рів. {enemy.level})!")
-        return enemy
 
 
 def create_world_map():
