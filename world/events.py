@@ -30,10 +30,30 @@ class TreasureChestEvent(Event):
     
     def resolve(self, player):
         """Випадковий лут: золото, зілля, зброю або нічого"""
-        loot = random.choice(["золото", "зілля", "зброю", "нічого"])
-        result = f"У скрині ви знайшли: {loot}"
+        choices = {
+            "золото": lambda: self._add_gold(player, random.randint(50, 150)),
+            "зілля": lambda: self._restore_hp(player, random.randint(30, 50)),
+            "зброю": lambda: self._gain_xp(player, random.randint(50, 100)),
+            "нічого": lambda: "Скриня була пуста..."
+        }
+        loot_type = random.choice(list(choices.keys()))
+        result = choices[loot_type]()
         print(result)
         return result
+    
+    def _add_gold(self, player, amount):
+        player.gold += amount
+        return f"У скрині ви знайшли {amount} золота! 💰"
+    
+    def _restore_hp(self, player, amount):
+        old_hp = player.hp
+        player.hp = min(player.max_hp, player.hp + amount)
+        actual_restore = player.hp - old_hp
+        return f"Ви знайшли зілля здоров'я! +{actual_restore} HP! 🧪"
+    
+    def _gain_xp(self, player, amount):
+        player.gain_experience(amount, source="event")
+        return f"Ви отримали зброю та досвід! +{amount} XP! ⚔️"
 
 
 class RestSiteEvent(Event):
@@ -49,7 +69,18 @@ class RestSiteEvent(Event):
         """Відновити HP та stamina на випадкову кількість"""
         hp_restore = random.randint(20, 40)
         stamina_restore = random.randint(30, 50)
-        result = f"Відновлено HP: +{hp_restore}, Stamina: +{stamina_restore}"
+        
+        # Застосувати ефекти
+        old_hp = player.hp
+        old_stamina = player.stamina
+        player.hp = min(player.max_hp, player.hp + hp_restore)
+        player.stamina = min(player.max_stamina, player.stamina + stamina_restore)
+        
+        # Розрахувати фактичне відновлення
+        actual_hp = player.hp - old_hp
+        actual_stamina = player.stamina - old_stamina
+        
+        result = f"Ви відпочили! HP: +{actual_hp}, Stamina: +{actual_stamina} 🛏️"
         print(result)
         return result
 
@@ -96,9 +127,9 @@ class AmbushEvent(Event):
         escaped = random.random() * 100 < escape_chance
         
         if escaped:
-            result = f"Вам вдалося втекти від {enemies_count} ворогів!"
+            result = f"Вам вдалося втекти від {enemies_count} ворогів! 🏃"
         else:
-            result = f"Ви потрапили в бій з {enemies_count} ворогами! (Шанс втечі був {escape_chance}%)"
+            result = f"Ви потрапили в бій з {enemies_count} ворогами! (Шанс втечі був {escape_chance}%) ⚔️"
         
         print(result)
         return result
@@ -109,6 +140,12 @@ class ChoiceEvent(Event):
     def __init__(self, name, description, chance):
         super().__init__(name, description, "CHOICE", chance)
         self.choices = []  # Список варіантів
+    
+    def trigger(self, player):
+        """Показати опис події БЕЗ виклику resolve()"""
+        print(f"⚡ Подія: {self.name}")
+        print(f"📖 {self.description}")
+        # Не викликаємо resolve() - це буде зроблено після вибору гравцем
     
     def add_choice(self, text, action_function):
         """Додати варіант вибору"""
@@ -150,8 +187,10 @@ class SwampStreamEvent(ChoiceEvent):
         return result
     
     def go_around(self, player):
-        player.stamina -= 20
-        result = "Ви обійшли довкола. -20 stamina."
+        old_stamina = player.stamina
+        player.stamina = max(0, player.stamina - 20)
+        stamina_loss = old_stamina - player.stamina
+        result = f"Ви обійшли довкола. -{stamina_loss} stamina."
         print(result)
         return result
     
@@ -177,13 +216,15 @@ class CliffClimbEvent(ChoiceEvent):
         str_success = DiceSystem.attribute_check(player, "strength", 4)
         dex_success = DiceSystem.attribute_check(player, "dexterity", 4)
         if str_success and dex_success:
-            result = "Ви успішно залізли і знайшли скарб!"
+            gold = random.randint(50, 100)
+            player.gold += gold
+            result = f"Ви успішно залізли і знайшли {gold} золота! 💰"
         elif str_success or dex_success:
             player.hp -= 10
-            result = "Ви залізли, але отримали поранення. -10 HP."
+            result = "Ви залізли, але отримали поранення. -10 HP. 🩹"
         else:
             player.hp -= 20
-            result = "Ви впали! -20 HP."
+            result = "Ви впали! -20 HP. 💥"
         print(result)
         return result
     
@@ -233,10 +274,12 @@ class MysteriousChestEvent(ChoiceEvent):
         if DiceSystem.attribute_check(player, "strength", 4):
             gold = random.randint(15, 30)
             player.gold += gold
-            result = f"Ви зламали замок і знайшли {gold} золота!"
+            result = f"Ви зламали замок і знайшли {gold} золота! 💰"
         else:
-            player.stamina -= 15
-            result = "Ви не змогли відкрити. -15 stamina."
+            old_stamina = player.stamina
+            player.stamina = max(0, player.stamina - 15)
+            stamina_loss = old_stamina - player.stamina
+            result = f"Ви не змогли відкрити. -{stamina_loss} stamina."
         print(result)
         return result
     
