@@ -1,5 +1,6 @@
 from entities.enemies import Enemy
-from ui import UI, ProgressionUI
+from ui import ProgressionUI
+from ui.base_ui import GameUI
 from ui.menus import InventoryMenu
 from world.locations import Location
 from world.events import ChoiceEvent
@@ -9,159 +10,114 @@ from .game_engine import GameEngine
 
 
 class Game:
-    """Головний клас гри, керує ігровим циклом"""
-    
-    def __init__(self, player, start_location):
-        """Ініціалізація гри
-        
-        Args:
-            player: Об'єкт гравця (Character)
-            start_location: Початкова локація
-        """
+    def __init__(self, player, start_location, ui: GameUI):
         self.player = player
         self.current_location = start_location
         self.is_running = True
-        self._combat = Combat(player)
-        self.current_event = None  # Для відстеження ChoiceEvent
-    
-    def show_status(self):
-        """Виводить поточний статус гравця та локації"""
-        UI.print_separator()
-        status = f"Персонаж: {self.player.name}\n"
-        status += f"Рівень: {self.player.level}\n"
-        status += f"HP: {self.player.hp}/{self.player.max_hp}\n"
-        
-        # Інформація про досвід
-        exp_summary = self.player.experience_manager.get_summary()
-        progress = exp_summary['progress_percentage']
-        status += f"Досвід: {exp_summary['total_experience']}/{exp_summary['experience_to_next_level']} ({progress:.1f}%)\n"
+        self._ui = ui
+        self._combat = Combat(player, ui)
+        self._progression_ui = ProgressionUI(ui)
+        self.current_event = None
 
+    def show_status(self):
+        self._ui.show_separator()
+        exp_summary = self.player.experience_manager.get_summary()
+        progress = exp_summary["progress_percentage"]
         totals = GameEngine.calculate_total_stats(self.player)
-        status += f"Макс HP: {totals['max_hp']}  Crit: {totals['crit_chance']:.1%}  Dodge: {totals['dodge_chance']:.1%}\n"
-        status += f"Фізичне ураження: {totals['physical_damage']:.1f}  Магічне ураження: {totals['magical_damage']:.1f}\n"
-        status += f"Локація: {self.current_location.name}"
-        
-        UI.print_status(status)
-        UI.print_separator()
-    
+        status = (
+            f"Персонаж: {self.player.name}\n"
+            f"Рівень: {self.player.level}\n"
+            f"HP: {self.player.hp}/{self.player.max_hp}\n"
+            f"Досвід: {exp_summary['total_experience']}/{exp_summary['experience_to_next_level']}"
+            f" ({progress:.1f}%)\n"
+            f"Макс HP: {totals['max_hp']}  Crit: {totals['crit_chance']:.1%}"
+            f"  Dodge: {totals['dodge_chance']:.1%}\n"
+            f"Фізичне ураження: {totals['physical_damage']:.1f}"
+            f"  Магічне ураження: {totals['magical_damage']:.1f}\n"
+            f"Локація: {self.current_location.name}"
+        )
+        self._ui.show_status(status)
+        self._ui.show_separator()
+
     def show_actions(self):
-        """Виводить доступні дії"""
-        actions = self.current_location.get_actions()
-        UI.print_actions(actions)
-    
+        self._ui.show_actions(self.current_location.get_actions())
+
     def handle_action(self, choice):
-        """Обробляє вибір гравця
-        
-        Args:
-            choice: Введений гравцем вибір
-        """
-        # Якщо гравець в режимі вибору подій, обробити вибір події
         if self.current_event is not None:
             self._handle_choice_event(choice)
             return
-        
+
         choice = choice.strip()
         choice_lower = choice.lower()
-        
-        # Обробка системної команди "вийти"
-        if choice_lower == "вийти":
-            if UI.confirm("Ви впевнені що хочете вийти з гри?"):
-                self.is_running = False
-                print("\nВи залишаєте гру...")
-            return 
 
-        # Службові команди гравця
+        if choice_lower == "вийти":
+            if self._ui.confirm("Ви впевнені що хочете вийти з гри?"):
+                self.is_running = False
+                self._ui.show_text("\nВи залишаєте гру...")
+            return
+
         if choice_lower in ["статус", "status", "листок", "sheet"]:
-            ProgressionUI.display_character_sheet(self.player)
+            self._progression_ui.display_character_sheet(self.player)
             return
 
         if choice_lower in ["атрибути", "attributes", "attribute"]:
-            ProgressionUI.display_attribute_menu(self.player)
+            available_points = getattr(self.player.leveling_system, "attribute_points", 0)
+            self._progression_ui.display_attribute_menu(self.player, available_points)
             return
 
         if choice_lower == "i":
-            InventoryMenu.show(self.player)
+            InventoryMenu(self._ui).show(self.player)
             return
-        
-        # Перегляд статусу
+
         if choice_lower == "s":
             self.show_status()
             return
-        
-        # Обробка дій локації (дослідження може повернути ворога або перейти на іншу локацію)
+
         result = self.current_location.handle_action(choice, self.player)
 
         if isinstance(result, ChoiceEvent):
-            # Встановити поточну подію та показати це гравцю
             self.current_event = result
-            result.trigger(self.player)  # Показує опис
-            result.show_choices()  # Показує варіанти
+            result.trigger(self.player)
+            result.show_choices()
         elif isinstance(result, Enemy):
             self._combat.run([result])
         elif isinstance(result, Location):
             self.current_location = result
-            print(f"\n⇨ Ви перемістилися до {self.current_location.name}")
-    
+            self._ui.show_text(f"\n⇨ Ви перемістилися до {self.current_location.name}")
+
     def _handle_choice_event(self, choice):
-        """Обробляє вибір гравця під час ChoiceEvent
-        
-        Args:
-            choice: Вибір гравця (номер варіанту)
-        """
         try:
             choice_index = int(choice.strip())
             if 1 <= choice_index <= len(self.current_event.choices):
                 self.current_event.resolve(self.player, choice_index)
-                self.current_event = None  # Подія завершена
+                self.current_event = None
             else:
-                print(f"⚠️ Невірний вибір. Введіть число від 1 до {len(self.current_event.choices)}.")
+                self._ui.show_text(
+                    f"⚠️ Невірний вибір. Введіть число від 1 до {len(self.current_event.choices)}."
+                )
                 self.current_event.show_choices()
         except ValueError:
-            print("⚠️ Будь ласка, введіть число.")
+            self._ui.show_text("⚠️ Будь ласка, введіть число.")
             self.current_event.show_choices()
 
     def check_game_over(self):
-        """Перевіряє чи гра завершена (персонаж загинув)"""
         if not self.player.is_alive():
-            print("\n💀 Ваш персонаж загинув.")
+            self._ui.show_text("\n💀 Ваш персонаж загинув.")
             self.is_running = False
-    
+
     def run(self):
-        """Головний ігровий цикл"""
-        print("\n🌲 Гра розпочалась!")
-        print("Системні команди: вийти, допомога")
-        print("-" * 40)
-        
+        self._ui.show_text("\n🌲 Гра розпочалась!")
+        self._ui.show_text("Системні команди: вийти, статус, атрибути")
+
         while self.is_running:
-            # Якщо гравець в режимі вибору подій, показати мінімальну інформацію
             if self.current_event is not None:
-                choice = input("\nВаш вибір (введіть номер): ")
+                choice = self._ui.get_input("\nВаш вибір (введіть номер): ")
             else:
                 self.show_status()
                 self.show_actions()
-                choice = input("\nВаш вибір: ")
-            
+                choice = self._ui.get_input("\nВаш вибір: ")
+
             self.handle_action(choice)
             self.check_game_over()
-        
-        print("\n🎮 Гру завершено.")
-    
-    def _show_help(self):
-        """Показати допомогу гравцю"""
-        print("\n" + "=" * 40)
-        print("📖 ДОПОМОГА")
-        print("=" * 40)
-        print("1 - Дослідити місцевість (можливий бій)")
-        print("2 - Відпочити (відновити HP)")
-        print("i - Переглянути інвентар")
-        print("s - Переглянути статус персонажа")
-        print("3+ - Перейти до сусідньї локації")
-        print("вийти - Завершити гру")
-        print("допомога - Показати цю підказку")
-        print("=" * 40)
 
-# TODO: додати команду "допомога" яка показує пояснення гри
-# TODO: додати клас MainMenu для вибору "Нова гра" / "Завантажити гру"
-# TODO: додати систему автозбереження гри в JSON файли (чекпойнти)
-# TODO: додати метод save_game() для збереження стану гри
-# TODO: додати метод load_game() для завантаження збереженої гри
+        self._ui.show_text("\n🎮 Гру завершено.")

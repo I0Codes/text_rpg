@@ -1,28 +1,36 @@
-import random
+from kivy.app import App
+
 from core import Game
-from world import Forest
-from world.events import get_random_event
+from ui.kivy_ui import KivyUI
 from ui.menus import MainMenu, CharacterCreationMenu
+from world import Forest
 
 
 def main():
-    """Точка входу в гру"""
-    while True:
-        action = MainMenu.show()
+    ui = KivyUI()
 
-        if action == "exit":
-            print("Вихід з гри.")
-            return
+    def game_loop():
+        menu = MainMenu(ui)
+        char_menu = CharacterCreationMenu(ui)
 
-        if action == "load_game":
-            print("Функція завантаження поки не реалізована.")
-            continue
+        while True:
+            action = menu.show()
 
-        player = CharacterCreationMenu.show()
+            if action == "exit":
+                ui.show_text("Вихід з гри.")
+                App.get_running_app().stop()
+                return
 
-        forest = Forest()
-        game = Game(player, forest)
-        game.run()
+            if action == "load_game":
+                ui.show_text("Функція завантаження поки не реалізована.")
+                continue
+
+            player = char_menu.show()
+            forest = Forest()
+            game = Game(player, forest, ui)
+            game.run()
+
+    ui.run(game_loop)
 
 
 if __name__ == "__main__":
