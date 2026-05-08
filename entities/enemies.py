@@ -102,7 +102,7 @@ class Troll(Enemy):
         real_damage = super().take_damage(damage)
         # Регенерація: зцілює 10% від максимального здоров'я за хід, якщо живий
         if self.is_alive():
-            self.hp = min(self.hp + int(0.1 * 80 * self.level), 80 * self.level)
+            self.hp = min(self.hp + int(0.1 * 60 * self.level), 50 * self.level)
         return real_damage
     
     # def attack(self):
