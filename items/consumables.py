@@ -6,7 +6,7 @@ except ImportError:
 
 class Consumable(Item):
     def __init__(self, name, description, value):
-        super().__init__("CONSUMABLE", name, description, value=value)
+        super().__init__("consumable", name, description, value=value)
 
     def use(self, user):
         """Override use to consume the item"""

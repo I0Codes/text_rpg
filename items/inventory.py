@@ -72,6 +72,7 @@ class Inventory:
 
     def get_items_by_type(self, item_type: str) -> List[Item]:
         """Повертає перелік предметів указаного типу."""
+        item_type = item_type.lower()
         return [i for i in self.items if i.item_type == item_type]
 
     def show_inventory(self) -> None:
