@@ -62,7 +62,6 @@ class Game:
                 self.is_running = False
                 print("\nВи залишаєте гру...")
             return 
-        
 
         # Службові команди гравця
         if choice_lower in ["статус", "status", "листок", "sheet"]:
@@ -79,7 +78,7 @@ class Game:
         if isinstance(result, Enemy):
             self._combat.run([result])
         elif isinstance(result, Location):
-            self.current_location = result
+            self.current_location = result            
         
         # Перегляд інвентарю
         if choice_lower == "i":
