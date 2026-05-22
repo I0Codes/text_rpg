@@ -2,6 +2,7 @@ from entities.enemies import Enemy
 from ui import UI, ProgressionUI
 from ui.menus import InventoryMenu
 from world.locations import Location
+from world.events import ChoiceEvent
 
 from .combat import Combat
 from .game_engine import GameEngine
@@ -21,6 +22,7 @@ class Game:
         self.current_location = start_location
         self.is_running = True
         self._combat = Combat(player)
+        self.current_event = None  # Для відстеження ChoiceEvent
     
     def show_status(self):
         """Виводить поточний статус гравця та локації"""
@@ -53,6 +55,11 @@ class Game:
         Args:
             choice: Введений гравцем вибір
         """
+        # Якщо гравець в режимі вибору подій, обробити вибір події
+        if self.current_event is not None:
+            self._handle_choice_event(choice)
+            return
+        
         choice = choice.strip()
         choice_lower = choice.lower()
         
@@ -72,15 +79,6 @@ class Game:
             ProgressionUI.display_attribute_menu(self.player)
             return
 
-        # Обробка дій локації (дослідження може повернути ворога або перейти на іншу локацію)
-        result = self.current_location.handle_action(choice, self.player)
-
-        if isinstance(result, Enemy):
-            self._combat.run([result])
-        elif isinstance(result, Location):
-            self.current_location = result            
-        
-        # Перегляд інвентарю
         if choice_lower == "i":
             InventoryMenu.show(self.player)
             return
@@ -93,12 +91,34 @@ class Game:
         # Обробка дій локації (дослідження може повернути ворога або перейти на іншу локацію)
         result = self.current_location.handle_action(choice, self.player)
 
-        if isinstance(result, Enemy):
-            # Розпочати бій
+        if isinstance(result, ChoiceEvent):
+            # Встановити поточну подію та показати це гравцю
+            self.current_event = result
+            result.trigger(self.player)  # Показує опис
+            result.show_choices()  # Показує варіанти
+        elif isinstance(result, Enemy):
             self._combat.run([result])
         elif isinstance(result, Location):
             self.current_location = result
             print(f"\n⇨ Ви перемістилися до {self.current_location.name}")
+    
+    def _handle_choice_event(self, choice):
+        """Обробляє вибір гравця під час ChoiceEvent
+        
+        Args:
+            choice: Вибір гравця (номер варіанту)
+        """
+        try:
+            choice_index = int(choice.strip())
+            if 1 <= choice_index <= len(self.current_event.choices):
+                self.current_event.resolve(self.player, choice_index)
+                self.current_event = None  # Подія завершена
+            else:
+                print(f"⚠️ Невірний вибір. Введіть число від 1 до {len(self.current_event.choices)}.")
+                self.current_event.show_choices()
+        except ValueError:
+            print("⚠️ Будь ласка, введіть число.")
+            self.current_event.show_choices()
 
     def check_game_over(self):
         """Перевіряє чи гра завершена (персонаж загинув)"""
@@ -113,20 +133,13 @@ class Game:
         print("-" * 40)
         
         while self.is_running:
-            self.show_status()
-            self.show_actions()
-            
-            choice = input("\nВаш вибір: ").strip()
-            
-            # Системні команди
-            if choice.lower() == "вийти":
-                if UI.confirm("Ви впевнені що хочете вийти з гри?"):
-                    self.is_running = False
-                    print("\nВи залишаєте гру...")
-                continue
-            elif choice.lower() == "допомога":
-                self._show_help()
-                continue
+            # Якщо гравець в режимі вибору подій, показати мінімальну інформацію
+            if self.current_event is not None:
+                choice = input("\nВаш вибір (введіть номер): ")
+            else:
+                self.show_status()
+                self.show_actions()
+                choice = input("\nВаш вибір: ")
             
             self.handle_action(choice)
             self.check_game_over()

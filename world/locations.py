@@ -1,6 +1,7 @@
 import random
 
 from entities.enemies import Goblin, Wolf, Bandit, Orc, Troll, Dragon
+from world.events import get_random_event
 
 
 class Location:
@@ -39,6 +40,20 @@ class Location:
             return None
 
     def _explore(self, hero):
+        # 30% шанс на випадкову подію
+        if random.random() < 0.3:
+            event = get_random_event()
+            if event:
+                # Для ChoiceEvent, повертаємо подію для обробки в Game
+                from world.events import ChoiceEvent
+                if isinstance(event, ChoiceEvent):
+                    return event
+                else:
+                    # Для звичайних подій, спускаємо їх та повертаємо None
+                    event.trigger(hero)
+                    return None
+        
+        # Інакше, звичайна зустріч з ворогом
         chance = 0.6
         if random.random() < chance:
             enemy = self._get_random_enemy(hero.level)
@@ -77,6 +92,18 @@ class Village(Location):
         super().__init__("Село")
 
     def _explore(self, hero):
+        # 30% шанс на випадкову подію
+        if random.random() < 0.3:
+            event = get_random_event()
+            if event:
+                from world.events import ChoiceEvent
+                if isinstance(event, ChoiceEvent):
+                    return event
+                else:
+                    event.trigger(hero)
+                    return None
+        
+        # Інакше, звичайна зустріч з ворогом (менший шанс у селі)
         if random.random() < 0.2:
             enemy = self._get_random_enemy(hero.level)
             print(f"\n⚔️ У селі вас атакує {enemy.name}!")
@@ -95,6 +122,18 @@ class Cave(Location):
         super().__init__("Печера")
 
     def _explore(self, hero):
+        # 30% шанс на випадкову подію
+        if random.random() < 0.3:
+            event = get_random_event()
+            if event:
+                from world.events import ChoiceEvent
+                if isinstance(event, ChoiceEvent):
+                    return event
+                else:
+                    event.trigger(hero)
+                    return None
+        
+        # Інакше, звичайна зустріч з ворогом
         if random.random() < 0.8:
             enemy = random.choice([Orc, Troll, Dragon])(level=max(1, hero.level))
             print(f"\n⚔️ Ви зустріли {enemy.name} у печері!")
@@ -108,6 +147,18 @@ class DarkForest(Location):
         super().__init__("Темний ліс")
 
     def _explore(self, hero):
+        # 30% шанс на випадкову подію
+        if random.random() < 0.3:
+            event = get_random_event()
+            if event:
+                from world.events import ChoiceEvent
+                if isinstance(event, ChoiceEvent):
+                    return event
+                else:
+                    event.trigger(hero)
+                    return None
+        
+        # Інакше, звичайна зустріч з ворогом
         if random.random() < 0.75:
             enemy = random.choice([Bandit, Wolf, Troll, Dragon])(level=max(1, hero.level))
             print(f"\n⚔️ У темному лісі вас атакує {enemy.name}!")
