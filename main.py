@@ -1,6 +1,7 @@
 from kivy.app import App
 
 from core import Game
+from game_output import register_ui
 from ui.kivy_ui import KivyUI
 from ui.menus import MainMenu, CharacterCreationMenu
 from world import Forest
@@ -8,6 +9,7 @@ from world import Forest
 
 def main():
     ui = KivyUI()
+    register_ui(ui)
 
     def game_loop():
         menu = MainMenu(ui)

@@ -1,3 +1,6 @@
+from game_output import output
+
+
 class Item:
     """Базовий клас предмета
 
@@ -30,10 +33,10 @@ class Item:
             heal_amount = getattr(self, "value", 0) or 10
             if hasattr(user, "heal"):
                 user.heal(heal_amount)
-            print(f"Ви використовуєте {self.name}, відновлено {heal_amount} HP.")
+            output(f"Ви використовуєте {self.name}, відновлено {heal_amount} HP.")
             return True
 
-        print(f"Ви намагаєтеся використати {self.name}, але нічого не відбувається.")
+        output(f"Ви намагаєтеся використати {self.name}, але нічого не відбувається.")
         return False
 
     def __str__(self):

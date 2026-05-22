@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import List, Any
 
+from game_output import output
+
 from .item import Item
 
 
@@ -25,7 +27,7 @@ class Inventory:
         """
         # по кількості слотів
         if len(self.items) >= self.max_capacity:
-            print(f"Інвентар повний ({self.max_capacity} слотів)!")
+            output(f"Інвентар повний ({self.max_capacity} слотів)!")
             return False
 
         if item.stackable:
@@ -61,7 +63,7 @@ class Inventory:
         Повертає результат виклику ``item.use``.
         """
         if item not in self.items:
-            print(f"У інвентарі немає {item.name}.")
+            output(f"У інвентарі немає {item.name}.")
             return False
 
         used = item.use(character)
@@ -78,14 +80,14 @@ class Inventory:
     def show_inventory(self) -> None:
         """Виводить список усіх предметів у інвентарі."""
         if not self.items:
-            print("Інвентар порожній.")
+            output("Інвентар порожній.")
             return
 
-        print("---- Інвентар ----")
+        output("---- Інвентар ----")
         for idx, itm in enumerate(self.items, start=1):
             qty = f" x{itm.quantity}" if itm.stackable else ""
-            print(f"{idx}. {itm.name}{qty} ({itm.item_type})")
-        print("------------------")
+            output(f"{idx}. {itm.name}{qty} ({itm.item_type})")
+        output("------------------")
 
     def __str__(self) -> str:
         return f"Inventory({len(self.items)}/{self.max_capacity})"

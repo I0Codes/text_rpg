@@ -1,3 +1,4 @@
+from game_output import output
 from items.inventory import Inventory
 from entities.attributes import Attributes
 from entities.experience import ExperienceManager
@@ -118,7 +119,7 @@ class Character:
             messages.append(f"Skill unlocked: {bonuses['skill']}")
 
         if messages:
-            print(f"🎁 Бонуси за рівень {level}: {'; '.join(messages)}")
+            output(f"🎁 Бонуси за рівень {level}: {'; '.join(messages)}")
 
         return bonuses
 
@@ -155,21 +156,21 @@ class Character:
     
     def heal(self, amount):
         self.hp = min(self.hp + amount, self.max_hp)
-        print(f"блбплпбплпбплпбп {amount}. вбвбьавбьавбьавдладлав: {self.hp}")
+        output(f"{self.name} відновив {amount} HP. HP: {self.hp}/{self.max_hp}")
 
     def restore_mana(self, amount):
         self.mana = min(self.max_mana, self.mana + amount)
-        print(f"{self.name} відновив {amount} мани. Мана: {self.mana}")
-        
+        output(f"{self.name} відновив {amount} мани. Мана: {self.mana}/{self.max_mana}")
+
     def restore_stamina(self, amount):
         self.stamina = min(self.stamina + amount, self.max_stamina)
-        print(f"fmnvnvdnvm {amount}.bubochka: {self.stamina}")
-        
+        output(f"{self.name} відновив {amount} витривалості. Стаміна: {self.stamina}/{self.max_stamina}")
+
     def use_stamina(self, cost):
         if self.stamina >= cost:
             self.stamina -= cost
             return True
-        print("biba")
+        output("Недостатньо витривалості.")
         return False
 
         # додаткові методи-заглушки для зручності
@@ -209,7 +210,7 @@ class Mage(Character):
 
     def restore_mana(self, amount):
         self.mana = min(self.max_mana, self.mana + amount)
-        print(f"{self.name} відновив {amount} мани. Мана: {self.mana}")
+        output(f"{self.name} відновив {amount} мани. Мана: {self.mana}/{self.max_mana}")
 
     def get_level_bonuses(self, level):
         bonuses = {

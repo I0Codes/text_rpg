@@ -1,4 +1,5 @@
 import random
+from game_output import output
 from dice_system import DiceSystem
 
 class Event:
@@ -10,8 +11,8 @@ class Event:
     
     def trigger(self, player):
         """Показати опис події"""
-        print(f"⚡ Подія: {self.name}")
-        print(f"📖 {self.description}")
+        output(f"⚡ Подія: {self.name}")
+        output(f"📖 {self.description}")
         return self.resolve(player)
     
     def resolve(self, player):
@@ -38,7 +39,7 @@ class TreasureChestEvent(Event):
         }
         loot_type = random.choice(list(choices.keys()))
         result = choices[loot_type]()
-        print(result)
+        output(result)
         return result
     
     def _add_gold(self, player, amount):
@@ -81,7 +82,7 @@ class RestSiteEvent(Event):
         actual_stamina = player.stamina - old_stamina
         
         result = f"Ви відпочили! HP: +{actual_hp}, Stamina: +{actual_stamina} 🛏️"
-        print(result)
+        output(result)
         return result
 
 
@@ -103,11 +104,11 @@ class MerchantEvent(Event):
     
     def resolve(self, player):
         """Показати меню товарів"""
-        print("\n=== ТОВАРИ ТОРГОВЦЯ ===")
+        output("\n=== ТОВАРИ ТОРГОВЦЯ ===")
         for item, price in self.goods.items():
-            print(f"{item}: {price} золота")
+            output(f"{item}: {price} золота")
         result = "Торговець чекає вашого вибору."
-        print(result)
+        output(result)
         return result
 
 
@@ -131,7 +132,7 @@ class AmbushEvent(Event):
         else:
             result = f"Ви потрапили в бій з {enemies_count} ворогами! (Шанс втечі був {escape_chance}%) ⚔️"
         
-        print(result)
+        output(result)
         return result
 
 
@@ -143,8 +144,8 @@ class ChoiceEvent(Event):
     
     def trigger(self, player):
         """Показати опис події БЕЗ виклику resolve()"""
-        print(f"⚡ Подія: {self.name}")
-        print(f"📖 {self.description}")
+        output(f"⚡ Подія: {self.name}")
+        output(f"📖 {self.description}")
         # Не викликаємо resolve() - це буде зроблено після вибору гравцем
     
     def add_choice(self, text, action_function):
@@ -153,9 +154,9 @@ class ChoiceEvent(Event):
     
     def show_choices(self):
         """Показати всі варіанти гравцю"""
-        print("\n=== ВАРІАНТИ ВИБОРУ ===")
+        output("\n=== ВАРІАНТИ ВИБОРУ ===")
         for i, (text, _) in enumerate(self.choices, 1):
-            print(f"{i}. {text}")
+            output(f"{i}. {text}")
     
     def resolve(self, player, choice_index):
         """Виконати обраний варіант"""
@@ -183,7 +184,7 @@ class SwampStreamEvent(ChoiceEvent):
         else:
             player.hp -= 15
             result = "Ви послизнулися! -15 HP."
-        print(result)
+        output(result)
         return result
     
     def go_around(self, player):
@@ -191,13 +192,13 @@ class SwampStreamEvent(ChoiceEvent):
         player.stamina = max(0, player.stamina - 20)
         stamina_loss = old_stamina - player.stamina
         result = f"Ви обійшли довкола. -{stamina_loss} stamina."
-        print(result)
+        output(result)
         return result
     
     def cross_carefully(self, player):
         player.hp -= 8
         result = "Ви обережно перейшли. -8 HP."
-        print(result)
+        output(result)
         return result
 
 
@@ -225,7 +226,7 @@ class CliffClimbEvent(ChoiceEvent):
         else:
             player.hp -= 20
             result = "Ви впали! -20 HP. 💥"
-        print(result)
+        output(result)
         return result
     
     def find_path(self, player):
@@ -233,12 +234,12 @@ class CliffClimbEvent(ChoiceEvent):
             result = "Ви знайшли безпечний обхідний шлях."
         else:
             result = "Ви не змогли знайти шлях."
-        print(result)
+        output(result)
         return result
     
     def skip(self, player):
         result = "Ви вирішили пропустити схил. Нічого не сталося."
-        print(result)
+        output(result)
         return result
 
 
@@ -267,7 +268,7 @@ class MysteriousChestEvent(ChoiceEvent):
         else:
             player.hp -= 25
             result = "Пастка спрацювала! -25 HP."
-        print(result)
+        output(result)
         return result
     
     def open_force(self, player):
@@ -280,7 +281,7 @@ class MysteriousChestEvent(ChoiceEvent):
             player.stamina = max(0, player.stamina - 15)
             stamina_loss = old_stamina - player.stamina
             result = f"Ви не змогли відкрити. -{stamina_loss} stamina."
-        print(result)
+        output(result)
         return result
     
     def inspect(self, player):
@@ -290,12 +291,12 @@ class MysteriousChestEvent(ChoiceEvent):
             result = f"Ви вимкнули пастку і знайшли {gold} золота!"
         else:
             result = "Ви нічого не помітили."
-        print(result)
+        output(result)
         return result
     
     def leave(self, player):
         result = "Ви залишили скриню. Нічого не сталося."
-        print(result)
+        output(result)
         return result
 
 def get_random_event():
