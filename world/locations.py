@@ -214,5 +214,5 @@ def create_world_map():
         "3": dark_forest,
     }
 
-    return forest  # Ліс - початкова локація
+    return village  # Село - початкова локація
 

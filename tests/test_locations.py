@@ -40,7 +40,7 @@ def test_village_safe_explore(monkeypatch, capsys):
 def test_cave_danger_explore(monkeypatch):
     hero = Character("Test", hp=50, max_hp=100, stamina=50, max_stamina=50)
     cave = Cave()
-    monkeypatch.setattr(random, "random", lambda: 0.1)
+    monkeypatch.setattr(random, "random", lambda: 0.5)
 
     enemy = cave._explore(hero)
     assert enemy is not None

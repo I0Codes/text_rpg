@@ -5,6 +5,7 @@ from entities.experience import ExperienceManager
 class MockCharacter:
     """Макет персонажа для тестування"""
     def __init__(self):
+        self.name = "Mock"
         self.level = 1
         self.max_hp = 100
         self.hp = 100
@@ -20,6 +21,7 @@ class TestExperienceManager(unittest.TestCase):
     def setUp(self):
         self.character = MockCharacter()
         self.exp_manager = ExperienceManager(self.character)
+        self.character.experience_manager = self.exp_manager
     
     def test_gain_experience_single_source(self):
         """Отримати досвід від одного джерела"""
@@ -89,6 +91,7 @@ class TestExperienceManager(unittest.TestCase):
 
         character = BonusCharacter()
         exp_manager = ExperienceManager(character)
+        character.experience_manager = exp_manager
         exp_manager.gain_experience(100, source="combat")
 
         self.assertTrue(character.bonus_applied)
