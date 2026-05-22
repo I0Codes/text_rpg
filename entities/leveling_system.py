@@ -1,5 +1,7 @@
 """Система прокачки рівнів персонажа з розподілом очок."""
 
+from game_output import output
+
 
 class LevelingSystem:
     """Керує прогресією рівнів, атрибутами та очками навичок персонажа."""
@@ -84,7 +86,7 @@ class LevelingSystem:
         
         # Перевірка наявності очок
         if self.attribute_points <= 0:
-            print(f"[ПОМИЛКА] Немає доступних очок атрибутів!")
+            output(f"[ПОМИЛКА] Немає доступних очок атрибутів!")
             return False
         
         # Збільшуємо атрибут
@@ -97,7 +99,7 @@ class LevelingSystem:
         # Перерахуємо бонуси
         self._recalculate_bonuses()
         
-        print(f"[УСПІХ] {attribute_name.capitalize()} збільшено на 1! "
+        output(f"[УСПІХ] {attribute_name.capitalize()} збільшено на 1! "
               f"Залишилось очок: {self.attribute_points}")
         
         return True
@@ -114,12 +116,12 @@ class LevelingSystem:
         """
         # Перевірка наявності очок
         if self.skill_points <= 0:
-            print(f"[ПОМИЛКА] Немає доступних очок навичок!")
+            output(f"[ПОМИЛКА] Немає доступних очок навичок!")
             return False
         
         # Перевірка наявності такої навички у персонажа
         if not hasattr(self.character, 'skills'):
-            print(f"[ПОМИЛКА] У персонажа немає системи навичок!")
+            output(f"[ПОМИЛКА] У персонажа немає системи навичок!")
             return False
         
         # Спроба покращити навичку (якщо вона існує) або додати нову
@@ -132,14 +134,14 @@ class LevelingSystem:
         
         if not skill_improved:
             # Якщо навичка не знайдена, додаємо нову (якщо можливо)
-            print(f"[ПОПЕРЕДЖЕННЯ] Навичка '{skill_name}' не знайдена. "
+            output(f"[ПОПЕРЕДЖЕННЯ] Навичка '{skill_name}' не знайдена. "
                   f"Перевірте назву навички.")
             return False
         
         # Витрачаємо очко
         self.skill_points -= 1
         
-        print(f"[УСПІХ] Навичка '{skill_name}' покращена! "
+        output(f"[УСПІХ] Навичка '{skill_name}' покращена! "
               f"Залишилось очок: {self.skill_points}")
         
         return True
@@ -170,7 +172,7 @@ class LevelingSystem:
         """Скинути всі очки (для переквалірікації)."""
         self.attribute_points = 0
         self.skill_points = 0
-        print("[ІНФОРМАЦІЯ] Очки скинуті.")
+        output("[ІНФОРМАЦІЯ] Очки скинуті.")
     
     def _recalculate_bonuses(self):
         """Перерахувати всі бонуси після зміни атрибутів."""
@@ -180,16 +182,16 @@ class LevelingSystem:
     
     def _print_level_up_message(self):
         """Вивести гарне повідомлення про підвищення рівня."""
-        print("\n" + "="*60)
-        print(f"[РІВЕНЬ ПІДВИЩЕНО!] Ви тепер рівня {self.level}!")
-        print("="*60)
-        print(f"[ОТРИМАНІ ОЧКИ]")
-        print(f"   [АТРИБУТИ] +{self.ATTRIBUTE_POINTS_PER_LEVEL} очок атрибутів "
+        output("\n" + "="*60)
+        output(f"[РІВЕНЬ ПІДВИЩЕНО!] Ви тепер рівня {self.level}!")
+        output("="*60)
+        output(f"[ОТРИМАНІ ОЧКИ]")
+        output(f"   [АТРИБУТИ] +{self.ATTRIBUTE_POINTS_PER_LEVEL} очок атрибутів "
               f"(всього: {self.attribute_points})")
-        print(f"   [НАВИЧКИ] +{self.SKILL_POINTS_PER_LEVEL} очко навичок "
+        output(f"   [НАВИЧКИ] +{self.SKILL_POINTS_PER_LEVEL} очко навичок "
               f"(всього: {self.skill_points})")
-        print(f"[HP ВІДНОВЛЕНО] {self.character.hp}/{self.character.max_hp}")
-        print("="*60 + "\n")
+        output(f"[HP ВІДНОВЛЕНО] {self.character.hp}/{self.character.max_hp}")
+        output("="*60 + "\n")
     
     def get_level_up_history(self):
         """Отримати історію підвищень рівня."""

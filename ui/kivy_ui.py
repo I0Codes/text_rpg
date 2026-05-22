@@ -6,18 +6,26 @@ from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.screenmanager import Screen, ScreenManager, NoTransition
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 
 from .base_ui import GameUI
+from .kivy_combat_screen import CombatScreen
 
 
-class _GameScreen(BoxLayout):
-    """Scrollable text output area + single-line input bar."""
+_MAX_LOG_LINES = 400  # Keep Label texture below the GPU's ~16K-px limit.
+
+
+class _MainScreen(Screen):
+    """Scrollable text output area + single-line input bar (the default view)."""
 
     def __init__(self, input_queue: Queue, **kwargs):
-        super().__init__(orientation="vertical", padding=8, spacing=4, **kwargs)
+        super().__init__(**kwargs)
         self._input_queue = input_queue
+
+        root = BoxLayout(orientation="vertical", padding=8, spacing=4)
+        self.add_widget(root)
 
         self._scroll = ScrollView(size_hint=(1, 0.85))
         self._output = Label(
@@ -31,7 +39,7 @@ class _GameScreen(BoxLayout):
             texture_size=self._output.setter("size"),
         )
         self._scroll.add_widget(self._output)
-        self.add_widget(self._scroll)
+        root.add_widget(self._scroll)
 
         row = BoxLayout(size_hint=(1, 0.15), spacing=4)
         self._entry = TextInput(
@@ -44,7 +52,7 @@ class _GameScreen(BoxLayout):
         btn.bind(on_press=self._on_submit)
         row.add_widget(self._entry)
         row.add_widget(btn)
-        self.add_widget(row)
+        root.add_widget(row)
 
     def _on_submit(self, *_) -> None:
         text = self._entry.text
@@ -52,27 +60,46 @@ class _GameScreen(BoxLayout):
         self._input_queue.put(text)
 
     def append(self, text: str) -> None:
-        self._output.text += text + "\n"
+        new_text = self._output.text + text + "\n"
+        # Drop the oldest lines so the underlying GPU texture stays small
+        # enough to render. Without this, very long sessions silently end up
+        # with an empty Label once the texture exceeds GL_MAX_TEXTURE_SIZE.
+        lines = new_text.split("\n")
+        if len(lines) > _MAX_LOG_LINES:
+            lines = lines[-_MAX_LOG_LINES:]
+            new_text = "\n".join(lines)
+        self._output.text = new_text
         self._scroll.scroll_y = 0
+
+
+class _RootManager(ScreenManager):
+    def __init__(self, input_queue: Queue, **kwargs):
+        super().__init__(transition=NoTransition(), **kwargs)
+        self.main_screen = _MainScreen(input_queue, name="main")
+        self.combat_screen = CombatScreen(input_queue, name="combat")
+        self.add_widget(self.main_screen)
+        self.add_widget(self.combat_screen)
 
 
 class _KivyApp(App):
     def __init__(self, input_queue: Queue, **kwargs):
         super().__init__(**kwargs)
         self._input_queue = input_queue
-        self.screen: _GameScreen | None = None
+        self.root_manager: _RootManager | None = None
 
-    def build(self) -> _GameScreen:
-        self.screen = _GameScreen(self._input_queue)
-        return self.screen
+    def build(self) -> _RootManager:
+        self.root_manager = _RootManager(self._input_queue)
+        return self.root_manager
 
 
 class KivyUI(GameUI):
-    """Kivy-based UI backend.
+    """Kivy-based UI backend with a dedicated combat screen.
 
     The game logic runs in a background thread and calls get_input(), which
-    blocks on a Queue.  The Kivy main thread puts the user's text into that
-    queue when they press Enter or the OK button, unblocking the game thread.
+    blocks on a Queue. The Kivy main thread puts the user's text into that
+    queue when they press Enter, click ОК, or tap an action button. Combat
+    rendering switches to a separate screen (enemy art, HP bars, animated
+    flash overlays, skull on death).
 
     Usage:
         ui = KivyUI()
@@ -82,11 +109,17 @@ class KivyUI(GameUI):
     def __init__(self):
         self._input_queue: Queue[str] = Queue()
         self._app = _KivyApp(self._input_queue)
+        self._in_combat = False
 
-    # --- GameUI primitives ---
+    # ------------------------------------------------------------------
+    # GameUI primitives
+    # ------------------------------------------------------------------
 
     def show_text(self, text: str) -> None:
-        Clock.schedule_once(lambda dt: self._append(text))
+        if self._in_combat:
+            Clock.schedule_once(lambda dt: self._append_combat(text))
+        else:
+            Clock.schedule_once(lambda dt: self._append_main(text))
 
     def show_separator(self) -> None:
         self.show_text("=" * 50)
@@ -100,15 +133,81 @@ class KivyUI(GameUI):
         answer = self.get_input(f"{question} (Так/Ні): ").lower()
         return answer in ["так", "т", "yes", "y"]
 
-    # --- App lifecycle ---
+    # ------------------------------------------------------------------
+    # Combat hooks (called from the game thread; marshalled via Clock)
+    # ------------------------------------------------------------------
+
+    def enter_combat(self, player, enemies) -> None:
+        self._in_combat = True
+        Clock.schedule_once(lambda dt: self._enter_combat(player, enemies))
+
+    def exit_combat(self) -> None:
+        Clock.schedule_once(lambda dt: self._exit_combat())
+        self._in_combat = False
+
+    def update_combat_state(self, player, enemies) -> None:
+        Clock.schedule_once(lambda dt: self._update_combat_state(player, enemies))
+
+    def show_combat_log(self, text: str) -> None:
+        Clock.schedule_once(lambda dt: self._append_combat(text))
+
+    def animate_player_attack(self, target_index: int, outcome: str) -> None:
+        Clock.schedule_once(
+            lambda dt: self._app.root_manager.combat_screen.flash_enemy(
+                target_index, outcome
+            )
+        )
+
+    def animate_enemy_attack(self, enemy_index: int, outcome: str) -> None:
+        Clock.schedule_once(
+            lambda dt: self._app.root_manager.combat_screen.flash_player(outcome)
+        )
+
+    def mark_enemy_dead(self, enemy_index: int) -> None:
+        Clock.schedule_once(
+            lambda dt: self._app.root_manager.combat_screen.mark_dead(enemy_index)
+        )
+
+    # ------------------------------------------------------------------
+    # App lifecycle
+    # ------------------------------------------------------------------
 
     def run(self, game_callable) -> None:
         """Launch the Kivy window and run *game_callable* in a daemon thread."""
         threading.Thread(target=game_callable, daemon=True).start()
         self._app.run()
 
-    # --- Internal ---
+    # ------------------------------------------------------------------
+    # Internal (Kivy thread only)
+    # ------------------------------------------------------------------
 
-    def _append(self, text: str) -> None:
-        if self._app.screen is not None:
-            self._app.screen.append(text)
+    def _append_main(self, text: str) -> None:
+        rm = self._app.root_manager
+        if rm is not None:
+            rm.main_screen.append(text)
+
+    def _append_combat(self, text: str) -> None:
+        rm = self._app.root_manager
+        if rm is None:
+            return
+        rm.combat_screen.append_log(text)
+
+    def _enter_combat(self, player, enemies) -> None:
+        rm = self._app.root_manager
+        if rm is None:
+            return
+        rm.combat_screen.clear_log()
+        rm.combat_screen.set_state(player, enemies)
+        rm.current = "combat"
+
+    def _exit_combat(self) -> None:
+        rm = self._app.root_manager
+        if rm is None:
+            return
+        rm.current = "main"
+
+    def _update_combat_state(self, player, enemies) -> None:
+        rm = self._app.root_manager
+        if rm is None:
+            return
+        rm.combat_screen.set_state(player, enemies)

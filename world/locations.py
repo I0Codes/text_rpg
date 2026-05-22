@@ -1,5 +1,6 @@
 import random
 
+from game_output import output
 from entities.enemies import Goblin, Wolf, Bandit, Orc, Troll, Dragon
 from world.events import get_random_event
 
@@ -36,7 +37,7 @@ class Location:
         elif choice in self.neighbors:
             return self.neighbors[choice]
         else:
-            print("Невідома дія")
+            output("Невідома дія")
             return None
 
     def _explore(self, hero):
@@ -57,15 +58,15 @@ class Location:
         chance = 0.6
         if random.random() < chance:
             enemy = self._get_random_enemy(hero.level)
-            print(f"\n⚔️ Ви зустріли {enemy.name} (рів. {enemy.level})!")
+            output(f"\n⚔️ Ви зустріли {enemy.name} (рів. {enemy.level})!")
             return enemy
-        print(f"\nВи дослідили {self.name}, але нікого не зустріли.")
+        output(f"\nВи дослідили {self.name}, але нікого не зустріли.")
         return None
 
     def _rest(self, hero):
         heal_amount = 5
         hero.hp = min(hero.max_hp, hero.hp + heal_amount)
-        print(f"\nВи відпочили. HP +{heal_amount}")
+        output(f"\nВи відпочили. HP +{heal_amount}")
 
     def _get_random_enemy(self, hero_level):
         enemy_classes = [Goblin, Wolf, Bandit, Orc, Troll, Dragon]
@@ -83,7 +84,7 @@ class Location:
             Enemy: Об'єкт ворога для бою
         """
         enemy = self._get_random_enemy(player.level)
-        print(f"\n⚔️ Ви зустріли {enemy.name} (рів. {enemy.level})!")
+        output(f"\n⚔️ Ви зустріли {enemy.name} (рів. {enemy.level})!")
         return enemy
 
 
@@ -106,15 +107,15 @@ class Village(Location):
         # Інакше, звичайна зустріч з ворогом (менший шанс у селі)
         if random.random() < 0.2:
             enemy = self._get_random_enemy(hero.level)
-            print(f"\n⚔️ У селі вас атакує {enemy.name}!")
+            output(f"\n⚔️ У селі вас атакує {enemy.name}!")
             return enemy
-        print("\nСело безпечне. Торговці і мир.")
+        output("\nСело безпечне. Торговці і мир.")
         return None
 
     def _rest(self, hero):
         heal_amount = 15
         hero.hp = min(hero.max_hp, hero.hp + heal_amount)
-        print(f"\nВи відпочили у таверні. HP +{heal_amount}")
+        output(f"\nВи відпочили у таверні. HP +{heal_amount}")
 
 
 class Cave(Location):
@@ -136,9 +137,9 @@ class Cave(Location):
         # Інакше, звичайна зустріч з ворогом
         if random.random() < 0.8:
             enemy = random.choice([Orc, Troll, Dragon])(level=max(1, hero.level))
-            print(f"\n⚔️ Ви зустріли {enemy.name} у печері!")
+            output(f"\n⚔️ Ви зустріли {enemy.name} у печері!")
             return enemy
-        print("\nПечера тиха, але напружена.")
+        output("\nПечера тиха, але напружена.")
         return None
 
 
@@ -161,9 +162,9 @@ class DarkForest(Location):
         # Інакше, звичайна зустріч з ворогом
         if random.random() < 0.75:
             enemy = random.choice([Bandit, Wolf, Troll, Dragon])(level=max(1, hero.level))
-            print(f"\n⚔️ У темному лісі вас атакує {enemy.name}!")
+            output(f"\n⚔️ У темному лісі вас атакує {enemy.name}!")
             return enemy
-        print("\nТемний ліс. Ви йдете обережно.")
+        output("\nТемний ліс. Ви йдете обережно.")
         return None
 
 
@@ -178,15 +179,15 @@ class Forest(Location):
         chance = 0.5  # 50% шанс зустрічі
         if random.random() < chance:
             enemy = self._get_random_enemy(hero.level)
-            print(f"\n⚔️ Ви зустріли {enemy.name} (рів. {enemy.level}) у лісі!")
+            output(f"\n⚔️ Ви зустріли {enemy.name} (рів. {enemy.level}) у лісі!")
             return enemy
-        print(f"\nВи дослідили {self.name}, але нікого не зустріли.")
+        output(f"\nВи дослідили {self.name}, але нікого не зустріли.")
         return None
 
     def trigger_combat(self, player):
         """Розпочати випадковий бій у лісі"""
         enemy = self._get_random_enemy(player.level)
-        print(f"\n⚔️ У лісі вас атакує {enemy.name} (рів. {enemy.level})!")
+        output(f"\n⚔️ У лісі вас атакує {enemy.name} (рів. {enemy.level})!")
         return enemy
 
 
