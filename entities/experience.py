@@ -1,14 +1,16 @@
+from ui.console_ui import ConsoleUI
 from ui.progression_ui import ProgressionUI
 
 
 class ExperienceManager:
-    def __init__(self, character):
+    def __init__(self, character, progression_ui=None):
         from core.game_engine import GameEngine
 
         self.character = character
         self.total_experience = 0
         self.experience_to_next_level = GameEngine.calculate_level_requirements(self.character.level)
         self.experience_sources = []  # Логування джерел досвіду
+        self._progression_ui = progression_ui or ProgressionUI(ConsoleUI())
     
     def gain_experience(self, amount, source="unknown"):
         """
@@ -28,7 +30,7 @@ class ExperienceManager:
             'total': self.total_experience
         })
         
-        ProgressionUI.display_experience_gain(amount, source, self.get_progress_percentage())
+        self._progression_ui.display_experience_gain(amount, source, self.get_progress_percentage())
         
         # Перевірка рівня
         while self.total_experience >= self.experience_to_next_level:
@@ -50,7 +52,7 @@ class ExperienceManager:
         if hasattr(self.character, 'apply_level_bonus'):
             self.character.apply_level_bonus(self.character.level)
         
-        ProgressionUI.display_level_up(self.character, self.character.level)
+        self._progression_ui.display_level_up(self.character, self.character.level)
     
     def calculate_experience_reward(self, enemy_level, player_level):
         """

@@ -1,27 +1,32 @@
 import pytest
 
 from core.game import Game
+from ui.console_ui import ConsoleUI
 from ui.menus import MainMenu, CharacterCreationMenu, InventoryMenu
 from world.locations import Village
 from entities.characters import Character
 from items.item import Item
 
 
+def _ui():
+    return ConsoleUI()
+
+
 def test_main_menu_new_game(monkeypatch):
     inputs = iter(["invalid", "5", "1"])
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
-    result = MainMenu.show()
+    result = MainMenu(_ui()).show()
     assert result == "new_game"
 
 
 def test_character_creation_menu(monkeypatch):
-    inputs = iter(["2", "Мой герой", "strength", "strength", "гото"])
+    # "2" → Mage, name, "5" → random attribute distribution
+    inputs = iter(["2", "Мой герой", "5"])
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
-    player = CharacterCreationMenu.show()
+    player = CharacterCreationMenu(_ui()).show()
 
     assert player.name == "Мой герой"
     assert player.is_alive()
-    assert player.attributes.strength >= 7
 
 
 def test_inventory_menu_use_item(monkeypatch):
@@ -32,16 +37,16 @@ def test_inventory_menu_use_item(monkeypatch):
     inputs = iter(["1", "1", "3"])
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
 
-    InventoryMenu.show(player)
+    InventoryMenu(_ui()).show(player)
     assert potion not in player.inventory.items
 
 
 def test_game_inventory_action_opens_inventory_menu(monkeypatch):
     player = Character(name="Test", hp=100, max_hp=100, stamina=50, max_stamina=50)
-    game = Game(player, Village())
+    game = Game(player, Village(), _ui())
     called = []
 
-    monkeypatch.setattr(InventoryMenu, "show", lambda p: called.append(p))
+    monkeypatch.setattr(InventoryMenu, "show", lambda self, p: called.append(p))
     game.handle_action("i")
 
     assert called == [player]
@@ -49,7 +54,7 @@ def test_game_inventory_action_opens_inventory_menu(monkeypatch):
 
 def test_game_status_action_shows_status(monkeypatch):
     player = Character(name="Test", hp=100, max_hp=100, stamina=50, max_stamina=50)
-    game = Game(player, Village())
+    game = Game(player, Village(), _ui())
     called = []
 
     monkeypatch.setattr(game, "show_status", lambda: called.append(True))

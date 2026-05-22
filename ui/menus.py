@@ -1,20 +1,22 @@
 import random
+
 from entities.characters import Character, Warrior, Mage, Scout
+from ui.base_ui import GameUI
 
 
 class MainMenu:
-    """Головне меню гри"""
+    def __init__(self, ui: GameUI):
+        self._ui = ui
 
-    @staticmethod
-    def show():
+    def show(self) -> str:
         while True:
-            print("\n=== ГОЛОВНЕ МЕНЮ ===")
-            print("1. Нова гра")
-            print("2. Завантажити гру")
-            print("3. Налаштування")
-            print("4. Вихід")
+            self._ui.show_text("\n=== ГОЛОВНЕ МЕНЮ ===")
+            self._ui.show_text("1. Нова гра")
+            self._ui.show_text("2. Завантажити гру")
+            self._ui.show_text("3. Налаштування")
+            self._ui.show_text("4. Вихід")
 
-            choice = input("Виберіть опцію: ").strip()
+            choice = self._ui.get_input("Виберіть опцію: ").strip()
             if choice == "1":
                 return "new_game"
             elif choice == "2":
@@ -24,15 +26,15 @@ class MainMenu:
             elif choice == "4":
                 return "exit"
             else:
-                print("Невірний вибір, спробуйте ще.")
+                self._ui.show_text("Невірний вибір, спробуйте ще.")
 
 
 class CharacterCreationMenu:
-    """Меню створення персонажа"""
+    def __init__(self, ui: GameUI):
+        self._ui = ui
 
-    @staticmethod
-    def show():
-        print("\n=== СТВОРЕННЯ ПЕРСОНАЖА ===")
+    def show(self) -> Character:
+        self._ui.show_text("\n=== СТВОРЕННЯ ПЕРСОНАЖА ===")
 
         classes = {
             "1": ("Warrior", Warrior),
@@ -43,12 +45,11 @@ class CharacterCreationMenu:
         selected = None
         while selected not in classes:
             for key, (label, _) in classes.items():
-                print(f"{key}. {label}")
-            selected = input("Виберіть клас: ").strip()
+                self._ui.show_text(f"{key}. {label}")
+            selected = self._ui.get_input("Виберіть клас: ").strip()
 
         chosen_label, chosen_cls = classes[selected]
-
-        name = input("Введіть ім'я персонажа: ").strip()
+        name = self._ui.get_input("Введіть ім'я персонажа: ").strip()
         if not name:
             name = "Герой"
 
@@ -62,15 +63,15 @@ class CharacterCreationMenu:
             "4": ("luck", "Luck"),
         }
 
-        print("\nРозподіліть початкові очки характеристик.")
+        self._ui.show_text("\nРозподіліть початкові очки характеристик.")
         while points > 0:
-            print(f"\nЗалишилося очок: {points}")
+            self._ui.show_text(f"\nЗалишилося очок: {points}")
             for key, (attr, label) in attrs.items():
                 current = getattr(player.attributes, attr, 0)
-                print(f"  {key}. {label}: {current}")
-            print("  5. Випадковий розподіл")
+                self._ui.show_text(f"  {key}. {label}: {current}")
+            self._ui.show_text("  5. Випадковий розподіл")
 
-            choice = input("Виберіть атрибут: ").strip()
+            choice = self._ui.get_input("Виберіть атрибут: ").strip()
             if choice in attrs:
                 attr_name = attrs[choice][0]
                 old = getattr(player.attributes, attr_name, 0)
@@ -84,56 +85,56 @@ class CharacterCreationMenu:
                     setattr(player.attributes, attr, old + 1)
                 points = 0
             else:
-                print("Невірний вибір.")
+                self._ui.show_text("Невірний вибір.")
 
-        print(f"\nСтворено персонажа: {player.name} ({chosen_label})")
+        self._ui.show_text(f"\nСтворено персонажа: {player.name} ({chosen_label})")
         return player
 
 
 class InventoryMenu:
-    """Меню інвентаря"""
+    def __init__(self, ui: GameUI):
+        self._ui = ui
 
-    @staticmethod
-    def show(player: Character):
+    def show(self, player: Character) -> None:
         if player is None:
             raise ValueError("Player не може бути None")
 
         while True:
-            print("\n=== МЕНЮ ІНВЕНТАРЯ ===")
+            self._ui.show_text("\n=== МЕНЮ ІНВЕНТАРЯ ===")
             player.inventory.show_inventory()
 
-            print("1. Використати предмет")
-            print("2. Екіпірувати предмет")
-            print("3. Назад")
+            self._ui.show_text("1. Використати предмет")
+            self._ui.show_text("2. Екіпірувати предмет")
+            self._ui.show_text("3. Назад")
 
-            choice = input("Виберіть опцію: ").strip()
+            choice = self._ui.get_input("Виберіть опцію: ").strip()
             if choice == "1":
                 if not player.inventory.items:
-                    print("Інвентар порожній.")
+                    self._ui.show_text("Інвентар порожній.")
                     continue
 
-                idx = input("Номер предмета для використання: ").strip()
+                idx = self._ui.get_input("Номер предмета для використання: ").strip()
                 if not idx.isdigit():
-                    print("Будь ласка, введіть число.")
+                    self._ui.show_text("Будь ласка, введіть число.")
                     continue
 
                 idx = int(idx) - 1
                 if idx < 0 or idx >= len(player.inventory.items):
-                    print("Невірний номер предмета.")
+                    self._ui.show_text("Невірний номер предмета.")
                     continue
 
                 item = player.inventory.items[idx]
                 used = player.use_item(item)
                 if used:
-                    print(f"{item.name} використано.")
+                    self._ui.show_text(f"{item.name} використано.")
                 else:
-                    print(f"Не вдалося використати {item.name}.")
+                    self._ui.show_text(f"Не вдалося використати {item.name}.")
 
             elif choice == "2":
-                print("Екіпірування наразі не реалізовано.")
+                self._ui.show_text("Екіпірування наразі не реалізовано.")
 
             elif choice == "3":
                 return
 
             else:
-                print("Невірний вибір, спробуйте ще.")
+                self._ui.show_text("Невірний вибір, спробуйте ще.")
