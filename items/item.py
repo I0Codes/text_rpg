@@ -13,7 +13,7 @@ class Item:
 
 
     def __init__(self, item_type, name, description="", weight=0.0, value=0, stackable=False, quantity=1):
-        self.item_type = item_type
+        self.item_type = item_type.lower() if isinstance(item_type, str) else item_type
         self.name = name
         self.description = description
         self.weight = weight
